@@ -13,8 +13,8 @@ Anomaly detection · variational autoencoder · eXplainable
 AI
 ### Results
 we have used two categories from MVTech dataset [Screw🔩 and Hazelnut 🌰] and results using;
-1. `Screw Dataset` is uploaded <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/results/imgs_screw_full.html'>here </a>
-2. `Hazelnut Dataset` is uploaded <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/results/imgs_hazelnut_full.html'>here </a>
+1. `Screw Dataset` is uploaded <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_screw_full.html'>here </a>
+2. `Hazelnut Dataset` is uploaded <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_hazelnut_full.html'>here </a>
 
 
 
