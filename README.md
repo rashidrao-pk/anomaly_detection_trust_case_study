@@ -18,8 +18,8 @@ pip install -r requirements.txt
 
 ### Supplementary Material 📊
 Following are the two Genearted files for the results analyzed in the paper <a href='https://www.mvtec.com/company/research/datasets/mvtec-ad'>MVTech dataset </a> [Screw🔩 and Hazelnut 🌰] and results using;
-1. File containing results for `Screw Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_screw_full.html'>**here** </a>
-2. File containing results for `Hazelnut Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_hazelnut_full.html'>**here**</a>
+1. File containing results for `Screw Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html'>**here** </a>
+2. File containing results for `Hazelnut Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.html'>**here**</a>
 
 
 ### Structure of the artifact 💻
