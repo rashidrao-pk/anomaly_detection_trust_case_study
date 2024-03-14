@@ -1,17 +1,13 @@
 import utils as ut
 import tensorflow.keras
 from tensorflow.keras import backend as K
-# from keras import backend as K
 import tensorflow as tf
-
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
 from sklearn.model_selection import train_test_split
-# import tensorflow_probability as tfp
 
 import tensorflow.keras.layers as layers
 class Model_VAE_GAN_functions():
