@@ -23,11 +23,11 @@ This artifact is structured as follows:
 - the [`results/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results) folder, which contains the results after running the artifact.
 - the [`models/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/models) folder, which contains the models trained and used for testing purposes.
 
-- two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_hazelnut.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_HAZELNUT.ipynb)
+- two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_hazelnut.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_HAZELNUT.ipynb)
 
 ### Paper contribution 📃
 In this research, we:
-*
+
 1. *Review an explainable Anomaly Detection system architecture that combines VAE-GAN
 models with the LIME and SHAP explanation methods;*
 2. *Quantify the capacity of the Anomaly Detection system in performing anomaly detection
