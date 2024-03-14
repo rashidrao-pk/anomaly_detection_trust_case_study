@@ -1,30 +1,17 @@
-import tensorflow_addons as tfa
-from tensorflow.keras.preprocessing import image_dataset_from_directory
-# from keras import backend as K
-from tensorflow.keras import backend as K
+import numpy as np
+import os,cv2,math,random,skimage,logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+import tensorflow as tf
 import tensorflow.keras
 import subprocess as sp
-import logging
-logging.getLogger("tensorflow").setLevel(logging.ERROR) # this goes *before* tf import
-import tensorflow as tf
-import os
-import random
-import numpy as np
-# from lime_stratified.lime.wrappers.scikit_image import SegmentationAlgorithm
-import skimage
-import matplotlib.pyplot as plt
-# Libraries for Evaluation
-import scipy
-import cv2
 import tensorflow_addons as tfa
-from skimage.metrics import structural_similarity as ssim
+import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA 
-####################
-from matplotlib.colors import LinearSegmentedColormap
-#############################
-import math
+from tensorflow.keras import backend as K
 from sklearn.metrics import confusion_matrix
-
+from matplotlib.colors import LinearSegmentedColormap
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+from skimage.metrics import structural_similarity as ssim
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 class Data2():
@@ -38,37 +25,23 @@ class Data2():
         return tf.image.rot90(img, k=int(angle / 0.2) % 4)
    
     def apply_random_transformation(img):
-        # Randomly select a transformation function
         choice = tf.random.uniform(shape=[], minval=0, maxval=3, dtype=tf.int32)
-        # Apply the selected transformation
         if choice == 0:
             return Data2.rotate(Data2.flip_up_down(Data2.flip_left_right(img)), -0.2)
         elif choice == 1:
             return Data2.rotate(img, -0.2)
         else:
             return Data2.rotate(img, 0.2)
-
-    def load_data(train_dir=None,test_dir=None,gtruth_dir=None,augmentation_target='medium',classes=None,
+    def load_data(train_dir=None,test_dir=None,gtruth_dir=None,augmentation_target='medium',dataset='screw',classes=None,
                   target_size = (128, 128),batch_size = 32):
-        
         if train_dir is not None and test_dir is not None:
             from tensorflow.keras.preprocessing.image import ImageDataGenerator
             if augmentation_target=='minimal':
                 train_datagen = ImageDataGenerator(rescale=1./255,
                                                    preprocessing_function=Data2.apply_random_transformation)
-            if augmentation_target=='medium':
-                train_datagen = ImageDataGenerator(
-                rescale=1./255,
-                shear_range=0.2,
-                zoom_range=0.2,
-                brightness_range=(0.8,1.2),
-                horizontal_flip=True,
-                vertical_flip=True,
-                interpolation_order=1,
-                preprocessing_function=Data2.apply_random_transformation,
-                )
             if augmentation_target=='custom':
-                train_datagen = ImageDataGenerator(rotation_range=40,
+                if dataset=='screw':
+                    train_datagen = ImageDataGenerator(rotation_range=40,
                                                    width_shift_range=0.05,
                                                    height_shift_range=0.05,
                                                    brightness_range=(0.8,1.2),
@@ -77,6 +50,19 @@ class Data2():
                                                    fill_mode='nearest',
                                                    # horizontal_flip=True,
                                                    # vertical_flip=True,
+                                                   rescale=1./255,
+                                                   preprocessing_function=Data2.apply_random_transformation
+                                                  )
+                elif dataset=='hazelnut':
+                    train_datagen = ImageDataGenerator(rotation_range=40,
+                                                   width_shift_range=0.05,
+                                                   height_shift_range=0.05,
+                                                   brightness_range=(0.8,1.2),
+                                                   shear_range=0.05,
+                                                   zoom_range=0.05,
+                                                   fill_mode='nearest',
+                                                   horizontal_flip=True,
+                                                   vertical_flip=True,
                                                    rescale=1./255,
                                                    preprocessing_function=Data2.apply_random_transformation
                                                   )
@@ -110,7 +96,7 @@ class Data2():
                 train_dir,
                 target_size=target_size,
                 batch_size=batch_size,
-                class_mode=None, # 'binary' , 'categorical'
+                class_mode=None,
                 shuffle=True,
                 seed=42) 
             test_generator = test_datagen.flow_from_directory(
@@ -118,7 +104,7 @@ class Data2():
                 color_mode="rgb",
                 target_size=target_size,
                 batch_size=batch_size,
-                class_mode='categorical', # 'binary' , 'categorical' -> test_generator.allowed_class_modes
+                class_mode='categorical',
                 classes=classes,
                 shuffle=False,
                 seed=42)
@@ -127,8 +113,7 @@ class Data2():
                 color_mode="rgb",
                 target_size=target_size,
                 batch_size=batch_size,
-                class_mode='categorical', # 'binary' , 'categorical' -> test_generator.allowed_class_modes
-#                 classes=classes,
+                class_mode='categorical',
                 shuffle=False,    
                 seed=42) 
             return train_generator,test_generator,gtruth_generator
@@ -142,15 +127,9 @@ class Data():
                 print(f'{path} created')
             else:
                 print(f'{path} already')
-#     def get_anomaly_types (dataset=None):
-#         if dataset is not None:
-#             if dataset=='screw'
-#                 return ['good', 'scratch_neck', 'manipulated_front', 'scratch_head', 'thread_side', 'thread_top']
-#             elif dataset=='hazelnut':
-#                 return ['good', 'crack', 'cut', 'hole', 'print']
             
-    def get_anomaly_types(test_dir=None,gt_dir=None):
-        if test_dir is not None:
+    def get_anomaly_types(test_dir=None,gt_dir=None,dataset=None):
+        if dataset is not None:
             anomaly_types = sorted(os.listdir(test_dir))
             anomaly_types_gt = sorted(os.listdir(gt_dir))
             print('*'*120)
@@ -160,42 +139,32 @@ class Data():
             anomaly_types_gt = sorted(anomaly_types_gt, key=Data.custom_sort)
             print(f'Classes in Test:\t{anomaly_types}')
             return anomaly_types,anomaly_types_gt
-        # if Dataset=='screw':
-            # return ['good','scratch_neck','manipulated_front','scratch_head','thread_side','thread_top']
-    
     def custom_sort(item):
         return 0 if item == 'good' else 1
     def visualise_augmentation(generator=None,
                                batch_size=8,
                                images_per_row=4,
                                num_augmented_images_to_display=8,
-                              original_image_index = 5,
+                               original_image_index = 5,
                                augmentation_target=None,
-                              results_path=None,
-                              save_plots=False,
+                               results_path=None,
+                               save_plots=False,
                                destroy_fig=False,
                                dpi=150,
                               ):
-        import cv2
         if generator is not None:
             num_rows = int(np.ceil(batch_size / images_per_row))
 
             fig, axs = plt.subplots(num_rows, images_per_row, figsize=(16, num_rows * 4))
-
-            # Flatten the axs array if it's more than 1D
             if num_rows > 1:
                 axs = axs.flatten()
-
-            # Iterate through augmented images and plot them
             for i in range(batch_size):
                 augmented_images = generator[0][original_image_index]
-#                 augmented_images = cv2.resize(augmented_images,(56,56))
                 row_index = i // images_per_row
                 col_index = i % images_per_row
                 axs[i].imshow(augmented_images)
                 axs[i].axis('off')
                 axs[i].set_title(f'Augmented {i+1}')
-            # Remove empty subplots (if any)
             for i in range(batch_size, num_rows * images_per_row):
                 fig.delaxes(axs[i])
 
@@ -206,7 +175,6 @@ class Data():
             if destroy_fig:
                 plt.close(fig)
             plt.show()
-#     Class to Load Data Paths, Data Files, and Create Dataset to be loaded at runtime
     def convert_to_float(image):
         image = tf.image.convert_image_dtype(image, dtype=tf.float32)
         return image
@@ -341,58 +309,6 @@ class Data():
             cv2.drawContours(contoured_image, contours, -1, (0, 255, 255), 1)  # (0, 255, 255) corresponds to yellow, 2 is the thickness
             return contoured_image
 class Explanation():
-    def plot_classification_score_examples(explanation,data,labels,class_probability,sub_results=None,ttl=None,draw_quantile=False,quantile=[0.05,0.95],save_image=False,plot_points=1000,plot_everything=True,hide_x_y_ticks=True,destroy_figs=False):
-        ''' Args:
-                Explanation:        Explaination returned by Lime-Image
-                data:               Data returned by LIME-Image (dense num_samples * num_superpixels)       
-                labels:             Prediction Probabilities Matrix generated by LIME-Image          
-                class_probability:  Class Probability or Prediction Score Returned by BlackBox Model 
-                curr_results:       Path to Save the Figure 
-                filenameee:         Filename to save the corrosponding Figure with into Relavant Directory      
-                draw_quantile:      False, set it to True if quantile plotting on classification score is also needed 
-                quantile:           Quantile Upper and Lower bound for classification score on Default [0.05-0.95]'''
-        colors = ['#6d9eeb','#f9cb9c']
-        cm = LinearSegmentedColormap.from_list("Custom", colors)
-        x = [np.sum(d) / len(d) for d in data]
-        TL = explanation.top_labels[0]
-        y =labels[:,TL]
-        segs = data.shape[1]
-        nos = data.shape[0]
-        fig = plt.figure(figsize=(3,3))
-        plt.scatter(x[:plot_points],y[:plot_points] , c =y[:plot_points] , cmap = cm, s=20 , lw = 0.5 , edgecolors = 'black')
-        plt.scatter(x[0],y[0] , c='m' ,marker='x', s =200)
-        # plt.xlim(-0.05,1.05)
-        # plt.ylim(-0.05,1.05)
-        plt.axhline(class_probability, ls = '--' , lw = 2 , color ='g' )
-        if draw_quantile:
-            q_lower = np.quantile(y,quantile[0])
-            q_upper = np.quantile(y,quantile[1])
-            plt.axhline(q_lower, ls = '--' , lw = 1 , color ='red' )
-            plt.axhline(q_upper, ls = '--' , lw = 1 , color ='blue' )
-        if plot_everything:
-            plt.text(+0.02,y[0]-0.10, '$y=f(\\xi)$' , fontsize='15')
-            plt.ylabel('$f(\\xi_x)$',fontsize='15')
-            plt.xlabel('$|x|$' , fontsize='15')
-        # if hide_x_y_ticks:
-        #     plt.tick_params(axis='x',which='both',bottom=False,top=False,labelbottom=False)
-        #     plt.tick_params(axis='y',which='both',left=False,right=False,labelleft=False)
-        # plt.tight_layout()
-        # if save_image:
-        #     plt.savefig(sub_results+'//ClassScore_'+ttl+'.png',transparent = True,bbox_inches = 'tight',pad_inches = 0.02, dpi = 150)
-        # if destroy_figs:
-        #     plt.close(fig)
-        # plt.show()
-        return plt
-    def get_RCY(Y,f_x):
-        '''
-        Function get_RCY will take two parameters and will compute the InterQuantile Range (IQR(99-1)) divided by f_x
-        Args:
-            Y          :  Y is the labels returned by Stratified LIME-Image explainer object
-            f_x :  f_x is class probability for the image returned by Blackbox model
-        Result:
-            IQR(99-01)/f_x
-        '''
-        return (np.quantile(Y,0.99) - np.quantile(Y,0.01)) / f_x 
     def get_CV_beta(beta):
         return np.std(beta) / np.mean(beta)
     def get_beta_from_expl(expl):
@@ -422,7 +338,7 @@ class Prediction():
     def plot_latent_space(vae, n=6, figsize=8,image_size=None,
                          latent_dim=None,epochs=None,results_path=None,
                          title=None,save_all_figs = False,
-                          destroy_fig=True):
+                          destroy_fig=False):
         _ ,digit_size = image_size
         scale = 100
         # display a n*n 2D manifold of digits
@@ -649,7 +565,7 @@ class visualize():
                             title=None,
                             destroy_fig=False,
                            ):
-        fig, ax = plt.subplots(figsize=(6,4))
+        fig, ax = plt.subplots(figsize=(10,4))
         if history_frame is not None:
             history_frame.loc[:, [metric]].plot(ax=ax)
             plt.xlabel('Epochs')
@@ -689,7 +605,6 @@ class visualize():
         if save_plot:
             if results_path is not None:
                 plt.savefig(f'{results_path}/latentspace_train_{epochs}.png',dpi=200)
-        
         if destroy_fig:
             plt.close(fig)
         plt.show()

@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 # import tensorflow_probability as tfp
 
 import tensorflow.keras.layers as layers
-class Model_VAE_GAN():
+class Model_VAE_GAN_functions():
     class Sampling(layers.Layer):
         """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
         ####              TODO
@@ -41,7 +41,7 @@ class Model_VAE_GAN():
 
         z_mean = layers.Dense(latent_dim, name="z_mean")(x)
         z_log_var = layers.Dense(latent_dim, name="z_log_var")(x)
-        z = Model_VAE_GAN.Sampling()([z_mean, z_log_var])
+        z = Model_VAE_GAN_functions.Sampling()([z_mean, z_log_var])
 
         encoder = keras.Model(encoder_inputs, [z_mean, z_log_var, z], name="encoder")
         if print_summary:
@@ -90,112 +90,100 @@ class Model_VAE_GAN():
         if print_summary:
             discriminator.summary()
         return discriminator
-    # def corr_loss(z):
-    #     coor_matrix = tfp.stats.correlation(z)
-    #     loss = 0
-    #     n,m = coor_matrix.shape
-    #     for i in range(n):
-    #         for j in range(m):
-    #             if i!=j:
-    #                 loss+=coor_matrix[i,j]**2
-    #     return loss
-# class Evaluation():
 
-    
-# class Models():
 
 ###########################################################################
 
-class Model_AE_GAN():
-    def get_encoder(latent_dim=None,image_size=[128, 128],print_summary=False):
-        a,b        = image_size
-        shape      = (a, b,3)
-        encoder_inputs = tf.keras.Input(shape=shape)
-        x = layers.Conv2D(32, 4, activation="relu", strides=2, padding="same")(encoder_inputs)
-        x = layers.GaussianNoise(stddev=15)(x)
-        x = layers.MaxPooling2D(2)(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(.2)(x)
+# class Model_AE_GAN():
+#     def get_encoder(latent_dim=None,image_size=[128, 128],print_summary=False):
+#         a,b        = image_size
+#         shape      = (a, b,3)
+#         encoder_inputs = tf.keras.Input(shape=shape)
+#         x = layers.Conv2D(32, 4, activation="relu", strides=2, padding="same")(encoder_inputs)
+#         x = layers.GaussianNoise(stddev=15)(x)
+#         x = layers.MaxPooling2D(2)(x)
+#         x = layers.BatchNormalization()(x)
+#         x = layers.Dropout(.2)(x)
 
-        x = layers.Conv2D(64, 4, activation="relu", strides=2, padding="same")(x)
-        x = layers.MaxPooling2D(2)(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(.2)(x)
+#         x = layers.Conv2D(64, 4, activation="relu", strides=2, padding="same")(x)
+#         x = layers.MaxPooling2D(2)(x)
+#         x = layers.BatchNormalization()(x)
+#         x = layers.Dropout(.2)(x)
 
-        x = layers.Conv2D(65, 3, activation="relu", strides=1, padding="same")(x)
+#         x = layers.Conv2D(65, 3, activation="relu", strides=1, padding="same")(x)
 
-        encoder = tf.keras.Model(encoder_inputs, x, name="encoder")
+#         encoder = tf.keras.Model(encoder_inputs, x, name="encoder")
 
-        if print_summary:
-            encoder.summary()
-        return encoder,x
+#         if print_summary:
+#             encoder.summary()
+#         return encoder,x
 
-    def get_decoder(x=None,print_summary=False):
-        a,b,c,d = x.shape
-        latent_inputs = keras.Input(shape=(b,c,d))
+#     def get_decoder(x=None,print_summary=False):
+#         a,b,c,d = x.shape
+#         latent_inputs = keras.Input(shape=(b,c,d))
 
-        x = layers.Conv2DTranspose(256, 3, activation="relu", strides=1, padding="same")(latent_inputs)
-        x = layers.BatchNormalization()(x)
-        x = layers.UpSampling2D(2)(x)
-        x = layers.Dropout(.2)(x)
+#         x = layers.Conv2DTranspose(256, 3, activation="relu", strides=1, padding="same")(latent_inputs)
+#         x = layers.BatchNormalization()(x)
+#         x = layers.UpSampling2D(2)(x)
+#         x = layers.Dropout(.2)(x)
 
-        x = layers.Conv2DTranspose(128, 5, activation="relu", strides=2, padding="same")(x)
-        x = layers.BatchNormalization()(x)
-        #x = layers.UpSampling2D(2)(x)
-        x = layers.Dropout(.2)(x)
+#         x = layers.Conv2DTranspose(128, 5, activation="relu", strides=2, padding="same")(x)
+#         x = layers.BatchNormalization()(x)
+#         #x = layers.UpSampling2D(2)(x)
+#         x = layers.Dropout(.2)(x)
 
-        x = layers.Conv2DTranspose(64, 9, activation="relu", strides=4, padding="same")(x)
-        x = layers.BatchNormalization()(x)
+#         x = layers.Conv2DTranspose(64, 9, activation="relu", strides=4, padding="same")(x)
+#         x = layers.BatchNormalization()(x)
 
-        x = layers.Conv2D(32, 5, activation="relu", strides=1, padding="same")(x)
-        decoder_outputs = layers.Conv2D(3, 5, activation="sigmoid", padding="same")(x)
-        decoder = keras.Model(latent_inputs, decoder_outputs, name="decoder")
-        if print_summary:
-            decoder.summary()
-        return decoder
-    def get_discriminator(shape=None,print_summary=False):
-        discriminator_inputs = keras.Input(shape=shape)
+#         x = layers.Conv2D(32, 5, activation="relu", strides=1, padding="same")(x)
+#         decoder_outputs = layers.Conv2D(3, 5, activation="sigmoid", padding="same")(x)
+#         decoder = keras.Model(latent_inputs, decoder_outputs, name="decoder")
+#         if print_summary:
+#             decoder.summary()
+#         return decoder
+#     def get_discriminator(shape=None,print_summary=False):
+#         discriminator_inputs = keras.Input(shape=shape)
 
-        x = layers.Conv2D(32, 4, activation="relu", strides=2, padding="same")(discriminator_inputs)
-        x = layers.MaxPooling2D(2)(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(.2)(x)
+#         x = layers.Conv2D(32, 4, activation="relu", strides=2, padding="same")(discriminator_inputs)
+#         x = layers.MaxPooling2D(2)(x)
+#         x = layers.BatchNormalization()(x)
+#         x = layers.Dropout(.2)(x)
 
-        x = layers.Conv2D(64, 4, activation="relu", strides=2, padding="same")(x)
-        x = layers.MaxPooling2D(2)(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(.2)(x)
-        x = layers.Flatten()(x)
-        x = layers.Dense(128,activation="relu")(x)
-        x = layers.Dropout(.2)(x)
-        x = layers.Dense(128,activation="relu")(x)
-        discriminator_outputs = layers.Dense(1,activation="sigmoid")(x)
-        discriminator = keras.Model(discriminator_inputs, discriminator_outputs, name="discriminator")
-        if print_summary:
-            discriminator.summary()
-        return discriminator
-    def get_lr_callback(epoch,lr):
-        lr_start   = 0.00001
-        lr_max     = 0.005#0.00000125 * 1 * batch_size
-        lr_min     = 0.0001
-        lr_ramp_ep = 10
-        lr_sus_ep  = 2
-        lr_decay   = 0.9
-        cycle = 5
-        def lrfn(epoch):
-            if epoch < lr_ramp_ep: lr = (lr_max - lr_start) / lr_ramp_ep * epoch + lr_start
-            elif epoch < lr_ramp_ep + lr_sus_ep: lr = lr_max
-            else:
-                lr = (lr_max - lr_min) * lr_decay**(epoch - lr_ramp_ep - lr_sus_ep) + lr_min
-            return lr    
-        return lrfn(epoch)
-    def diff(a,b):
-        img = abs(a-b)
-        treshhold = .2
-        img = layers.Activation("relu")(img-treshhold)
-        #m,M = tf.reduce_min(img),tf.reduce_max(img)
-        #norm = (img-m)/(M-m)
-        return layers.Activation("relu")(img)*255
+#         x = layers.Conv2D(64, 4, activation="relu", strides=2, padding="same")(x)
+#         x = layers.MaxPooling2D(2)(x)
+#         x = layers.BatchNormalization()(x)
+#         x = layers.Dropout(.2)(x)
+#         x = layers.Flatten()(x)
+#         x = layers.Dense(128,activation="relu")(x)
+#         x = layers.Dropout(.2)(x)
+#         x = layers.Dense(128,activation="relu")(x)
+#         discriminator_outputs = layers.Dense(1,activation="sigmoid")(x)
+#         discriminator = keras.Model(discriminator_inputs, discriminator_outputs, name="discriminator")
+#         if print_summary:
+#             discriminator.summary()
+#         return discriminator
+#     def get_lr_callback(epoch,lr):
+#         lr_start   = 0.00001
+#         lr_max     = 0.005#0.00000125 * 1 * batch_size
+#         lr_min     = 0.0001
+#         lr_ramp_ep = 10
+#         lr_sus_ep  = 2
+#         lr_decay   = 0.9
+#         cycle = 5
+#         def lrfn(epoch):
+#             if epoch < lr_ramp_ep: lr = (lr_max - lr_start) / lr_ramp_ep * epoch + lr_start
+#             elif epoch < lr_ramp_ep + lr_sus_ep: lr = lr_max
+#             else:
+#                 lr = (lr_max - lr_min) * lr_decay**(epoch - lr_ramp_ep - lr_sus_ep) + lr_min
+#             return lr    
+#         return lrfn(epoch)
+#     def diff(a,b):
+#         img = abs(a-b)
+#         treshhold = .2
+#         img = layers.Activation("relu")(img-treshhold)
+#         #m,M = tf.reduce_min(img),tf.reduce_max(img)
+#         #norm = (img-m)/(M-m)
+#         return layers.Activation("relu")(img)*255
 ###########################################################################################
 class VAE(keras.Model):
     def __init__(self, encoder, decoder, **kwargs):

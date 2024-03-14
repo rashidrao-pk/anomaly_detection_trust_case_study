@@ -1,7 +1,7 @@
 # Explaining Anomaly Detection based on VAE-GAN Models 🦠⚠️✅🫱🏻‍🫲🏼
 
-This Repositry contains codes to reproduce Results for our submission <b>'Can I trust my anomaly detection system? A case study'</b> 
-<p> we investigate the robustness of the process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
+This Repositry contains codes to reproduce the results for our submission <b>'Can I trust my anomaly detection system? A case study'</b> 
+<p> we investigate the robustness of the Anomaly Detection process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
 
 ### Dependencies and Installation 🔧
 - Python 3.9.18
@@ -15,6 +15,12 @@ git clone https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/
 cd anomaly_detection_trust_case_study
 pip install -r requirements.txt
 ```
+
+### Supplementary Material 📊
+Following are the two Genearted files for the results analyzed in the paper <a href='https://www.mvtec.com/company/research/datasets/mvtec-ad'>MVTech dataset </a> [Screw🔩 and Hazelnut 🌰] and results using;
+1. File containing results for `Screw Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_screw_full.html'>**here** </a>
+2. File containing results for `Hazelnut Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_hazelnut_full.html'>**here**</a>
+
 
 ### Structure of the artifact 💻
 
@@ -45,9 +51,6 @@ detect such samples.*
 ### Keywords 🔍
 Anomaly detection · variational autoencoder · eXplainable
 AI
-### Supplementary Material 📊
-Following are the two Genearted File for the results analyzed in the paper <a href='https://www.mvtec.com/company/research/datasets/mvtec-ad'>MVTech dataset </a> [Screw🔩 and Hazelnut 🌰] and results using;
-1. `Screw Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_screw_full.html'>**here** </a>
-2. `Hazelnut Dataset` is uploaded <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/imgs_hazelnut_full.html'>**here**</a>
+
 
 
