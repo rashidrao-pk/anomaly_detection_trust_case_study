@@ -23,7 +23,7 @@ This artifact is structured as follows:
 - the [`results/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results) folder, which contains the results after running the artifact.
 - the [`models/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/models) folder, which contains the models trained and used for testing purposes.
 
-- two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_hazelnut.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/AD_VAE_GAN_HAZELNUT.ipynb)
+- two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_hazelnut.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_HAZELNUT.ipynb)
 
 ### Paper contribution 📃
 In this research, we:
