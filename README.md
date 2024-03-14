@@ -3,13 +3,12 @@
 This Repositry contains codes to reproduce Results for our submission <b>'Can I trust my anomaly detection system? A case study'</b> 
 <p> we investigate the robustness of the process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
 
-*
 ### Dependencies and Installation 🔧
 - Python 3.9.18
 - Tensorflow
 - Option: NVIDIA GPU + CUDA
 
-Install all the required libraries by running following line:
+Clone the repositry and install all the required libraries by running following line:
 
 ```
 git clone https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/
