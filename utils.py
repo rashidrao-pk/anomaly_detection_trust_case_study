@@ -1,3 +1,11 @@
+###############################################################################################
+###  https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/
+###  Author : Muhammad Rashid
+###  PhD Student, University of Turin, Italy
+###  This code is written for article, 'Can I trust my anomaly detection system? A case study'
+###  Please Cite us if you use this code
+###  thanks
+###############################################################################################
 import numpy as np
 import os,cv2,math,random,skimage,logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
@@ -17,13 +25,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 class Data2():
     def flip_up_down(img):
         return tf.image.flip_up_down(img)
-
     def flip_left_right(img):
         return tf.image.flip_left_right(img)
-
     def rotate(img, angle):
         return tf.image.rot90(img, k=int(angle / 0.2) % 4)
-   
     def apply_random_transformation(img):
         choice = tf.random.uniform(shape=[], minval=0, maxval=3, dtype=tf.int32)
         if choice == 0:
@@ -127,7 +132,6 @@ class Data():
                 print(f'{path} created')
             else:
                 print(f'{path} already')
-            
     def get_anomaly_types(test_dir=None,gt_dir=None,dataset=None):
         if dataset is not None:
             anomaly_types = sorted(os.listdir(test_dir))
@@ -196,8 +200,6 @@ class Data():
     
     def load_data_normal(DS_path=None,DS_name='screw',prefetch=False,augment=True,image_size = [128, 128], batch_size= None):
         tf.autograph.set_verbosity(0)
-#         train_dir,validation_dir,test_dir = Data.get_subdata(DS_path=DS_path,DS_name=DS_name)
-
         ds = image_dataset_from_directory(
             DS_path,
             labels=None,
@@ -221,8 +223,6 @@ class Data():
         return ds
 
     def load_data_abnormal(DS_path=None,DS_name='screw',prefetch=False,image_size=[128, 128],batch_size=None):
-#         train_dir,validation_dir,test_dir = Data.get_subdata(DS_path=DS_path,DS_name=DS_name)
-
         ds_a = image_dataset_from_directory(
             DS_path,
 #             labels=None,
@@ -341,12 +341,9 @@ class Prediction():
                           destroy_fig=False):
         _ ,digit_size = image_size
         scale = 100
-        # display a n*n 2D manifold of digits
         figure = np.zeros((digit_size * n, digit_size * n,3))
-        # linearly spaced coordinates corresponding to the 2D plot of digit classes in the latent space
         grid_x = np.linspace(-scale, scale, n)
         grid_y = np.linspace(-scale, scale, n)[::-1]
-
         for i, yi in enumerate(grid_y):
             for j, xi in enumerate(grid_x):
                 z_sample = np.array([[2*random.random()-1 for i in range(latent_dim)]])
@@ -380,13 +377,11 @@ class Prediction():
                     n=8,figsize = 5,verbose=False,data_set=None,save_plot=False,results_path=None,destroy_fig=False):
         if model is not None:
             import matplotlib.gridspec as gridspec
-            # On training set
             digit_size, _ = image_size
             figure = np.zeros((digit_size*3, digit_size * n,3))
             img = list(data)[0]
             fig,axs = plt.subplots(3,n,figsize=(figsize*(figsize/3.9), figsize), sharex=True, sharey=True)
             for i in range(n):
-    #             ax1 = plt.subplots(3, n, i)
                 _,b_img = model(img)
                 a = list(b_img)[i]
             
@@ -398,7 +393,6 @@ class Prediction():
                 diff_img = list(img)[i]-a
                 diff_img = np.linalg.norm(diff_img, axis=2)
                 axs[2][i].imshow(diff_img, aspect=None, cmap='inferno')
-#                 print(diff_img.shape,diff_img.dtype)
                 axs[2][0].set_ylabel(f"$X-X\'$ ",fontsize=fontsize)
         fig.text(0, 0.5, f'{data_set}', va='center', rotation='vertical')
         fig.tight_layout(pad=0)
@@ -438,9 +432,7 @@ class Segmentation():
                     return segments
 
                 axs[st_id][0].imshow(input_image)
-            #     axs[st_id][0].
                 segments = segmentation_fn(input_image)
-                # print(len(np.unique(segments)))
                 segs = np.unique(segments).shape[0]
                 immgg=skimage.segmentation.mark_boundaries(input_image, segments, 
                                                            color=color1, outline_color=None, 
@@ -449,7 +441,6 @@ class Segmentation():
                 axs[st_id][1].set_title(f'$I\_A$ \n$k={len(np.unique(segments))})$')
 
                 segments = segmentation_fn(reconstructed_img)
-                # print(len(np.unique(segments)))
                 segs = np.unique(segments).shape[0]
                 immgg=skimage.segmentation.mark_boundaries(input_image, segments, 
                                                            color=color1, outline_color=None, 
@@ -492,7 +483,6 @@ class Segmentation():
         elif seg_type=='felzenszwalb':
             segmentation_fn = SegmentationAlgorithm(seg_type, kernel_size=4, 
                                                             max_dist=2, ratio=0.1, random_seed=1234) 
-
         def segments_getter(img):
             return segments
         if mask_type=='input':
@@ -502,12 +492,10 @@ class Segmentation():
         elif mask_type=='blend':
             segments = segmentation_fn(input_image*0.5+reconstructed_img*0.5)
         segs = np.unique(segments).shape[0]
-#         print(f'using seg_type:\t{seg_type}, \tmask_type:\t{mask_type} \t== \t{segs}')
         return segments,segs,segments_getter
 
 class Evaluate:
     def find_optimal_separation_threshold(anomaly_scores):
-        # print(anomaly_scores)
         def score_threshold(anomaly_scores, delta):
             y_true = [ a[1] for a in anomaly_scores ]
             y_pred = [ a[0] > delta for a in anomaly_scores ]
@@ -521,10 +509,8 @@ class Evaluate:
         print(opt_i, anomaly_scores[opt_i])
         return anomaly_scores[opt_i][0] + 0.00001
     
-    
     def computer_anomaly_score(input_image=None,reconstructed_image=None):
         return np.linalg.norm(input_image - reconstructed_image, axis=2)
-
 class visualize():
     def calc_IoU_curve(y_true, y_pred):
         yd = np.array(sorted(zip(y_pred, y_true), reverse=True))
@@ -597,11 +583,6 @@ class visualize():
                                                      n_components=2)
         fig = plt.figure(figsize=(6, 4))
         plt.scatter(z_mean_transformed[:, 0], z_mean_transformed[:, 1], c='black')
-# #         plt.colorbar()
-# #         plt.set_cmap('tab10')
-#         plt.xlabel("z[0]")
-#         plt.ylabel("z[1]")
-#         plt.title('Latent Space for Train Data')
         if save_plot:
             if results_path is not None:
                 plt.savefig(f'{results_path}/latentspace_train_{epochs}.png',dpi=200)
@@ -666,7 +647,6 @@ def compare(data=None,input_type=None,save_plot=False,results_path=None,verbose=
         if save_plot:
             if results_path is not None:
                 plt.savefig(f'{results_path}/ComparedwithScore_{pred[0][0]:0.4}.png',dpi=200)
-
     if perform_single_test_compare:
         compare(data=ds, input_type='Normal', save_plot=True,
                 results_path=results_path, verbose=False)
@@ -679,148 +659,4 @@ def compare(data=None,input_type=None,save_plot=False,results_path=None,verbose=
         compare(data=ds_a4,input_type='Anamolous_thread_side', save_plot=True,
                 results_path=results_path, verbose=False)
         compare(data=ds_a5,input_type='Anamolous_thread_top', save_plot=True,
-                results_path=results_path, verbose=False)
-class Resources():
-    def get_gpu_memory():
-        command = "nvidia-smi --query-gpu=memory.free --format=csv"
-        memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
-        memory_free_values = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
-        return memory_free_values[0]
-class get_losses():
-        # Score Fucntions by ELVIO
-    def mean_predict(model, data):
-        z_mean, z_log_var, z = model.vae.encoder(data)
-        reconstruction = model.vae.decoder(z_mean)
-        return reconstruction
-    def z_predict(model, data):
-        z_mean, z_log_var, z = model.vae.encoder(data)
-        reconstruction = model.vae.decoder(z)
-        return reconstruction
-    
-    def lime_predict_2norm(data, verbose=False):
-        global model
-        rec = get_losses.mean_predict(model, data)
-        diff = (rec - data)
-        n = tf.norm(tf.norm(diff, axis=-1), axis=[-1, -2])
-        return np.array([[x] for x in n])
-    
-    def lime_predict_latent(images, verbose=False):
-        global model
-        rec = model.vae.encoder(images)[2]
-        n = [[np.linalg.norm(x - zRA)] for x in rec]
-        return np.array(n)
-        
-    def lime_predict_am_sum(images, verbose=False):
-        # global model
-        # rec = model.predict(images, verbose=verbose)
-        # diff = (rec[1] - images)
-        # diffn2 = np.linalg.norm(diff, axis=3)
-        # # print(diff.shape, diffn2.shape)
-        # n = np.array([[np.sum(x)] for x in diffn2])
-        # # n = [[np.linalg.norm(x)] for x in diff]
-        # return np.array(n)
-        # # global IN, RA
-        return np.array([[np.linalg.norm(x)] for x in images])
-    
-    import tensorflow.keras as keras
-    from keras import backend as K
-    
-    # From "General Frameworks for Anomaly Detection Explainability: A comparative study"
-    def lime_predict_loss(data, verbose=False):
-        global model
-        batch_size = K.shape(data)[0]
-        reconstruction = get_losses.mean_predict(model, data)
-        MSE_loss = tf.reduce_sum(tf.square(reconstruction - data), axis=[1,2,3])
-        return np.array([ [l] for l in MSE_loss ])
-    
-    def lime_predict_max2norm(data, verbose=False):
-        global model
-        rec = get_losses.mean_predict(model, data)
-        diff = (rec - data)
-        n = tf.norm(tf.reduce_max(diff, axis=-1), axis=[-1, -2])
-        return np.array([[x] for x in n])
-    
-    def lime_predict_maxloss(data, verbose=False):
-        global model
-        batch_size = K.shape(data)[0]
-        reconstruction = get_losses.mean_predict(model, data)
-        MSE_maxloss = tf.reduce_sum(tf.reduce_max(tf.square(reconstruction - data), axis=[3]), axis=[1,2])
-        return np.array([ [l] for l in MSE_maxloss ])
-    
-    def get_beta_from_expl(expl):
-        n = len(np.unique(expl.segments))
-        beta = np.zeros(n)
-        for i,v in expl.local_exp[ expl.top_labels[0] ]:
-            beta[i] = v
-        return beta
-    
-    def heatmap_from_beta(segments, beta):
-        heatmapmap = np.zeros_like(segments, dtype=np.float32)
-        for segm, importance in enumerate(beta):
-            heatmapmap[ segments==segm ] += importance 
-        return heatmapmap
-    
-    import tensorflow_addons as tfa
-    
-    def lime_predict_maxloss_denoised(data, verbose=False):
-        global model
-        batch_size = K.shape(data)[0]
-        reconstruction = get_losses.mean_predict(model, data)
-        
-        difference = tf.cast(tf.square(reconstruction - data)*256, tf.int32)
-        denoised = tfa.image.gaussian_filter2d(difference, sigma=1, filter_shape=5)
-        clipped = tf.cast(tf.clip_by_value(difference - denoised, 5, 10000), tf.float32)
-        MSE_maxloss = tf.reduce_sum(tf.reduce_max(clipped, axis=[3]), axis=[1,2]) / 256
-        return np.array([ [l] for l in MSE_maxloss ])
-    
-    from skimage.metrics import structural_similarity
-    
-    def lime_ssim_loss(data, verbose=False):
-        global model
-        reconstruction = get_losses.mean_predict(model, data)
-        ssim_scores = []
-        
-        for i in range(data.shape[0]):
-            ssim = structural_similarity(np.linalg.norm(data[i], axis=2), 
-                                             np.linalg.norm(reconstruction[i], axis=2),
-                                             data_range=1, win_size=5)#, full=True)
-            # vmax = np.max(np.abs(img))
-            ssim_scores.append([ssim])
-            
-        return np.array(ssim_scores)
-    ########################## LOSSES ######################
-    
-    def lime_predict_maxloss_denoised(data, verbose=False):
-        global model
-        batch_size = K.shape(data)[0]
-        # z_mean, z_log_var, z = model.vae.encoder(data)
-        # reconstruction = model.vae.decoder(z)
-        rec = mean_predict(model, data)
-        difference = tf.cast(tf.square(rec - data)*256, tf.int32)
-        denoised = tfa.image.gaussian_filter2d(difference, sigma=1, filter_shape=5)
-        clipped = tf.cast(tf.clip_by_value(difference - denoised, 5, 10000), tf.float32)
-        MSE_maxloss = tf.reduce_sum(tf.reduce_max(clipped, axis=[3]), axis=[1,2]) / 256
-        return np.array([ [l] for l in MSE_maxloss ])  
-    
-    def lime_predict_2norm(data, verbose=False):
-        global model
-        rec = mean_predict(model, data)
-        diff = (rec[1] - data)
-        n = tf.norm(tf.norm(diff, axis=-1), axis=[-1, -2])
-        return np.array([[x] for x in n])
-    def lime_ssim_loss(data, verbose=False):
-        global model
-        # z_mean, z_log_var, z = model.vae.encoder(data)
-        # reconstruction = model.vae.decoder(z)
-        rec = mean_predict(model, data)
-        anomaly_scores = []
-        # fig,axs = plt.subplots(1,3, figsize=(5,10))
-        for img_id in range(data.shape[0]):
-            img_ = cv2.cvtColor(data[img_id], cv2.COLOR_BGR2GRAY)
-            reconstruction_ = np.squeeze(rec[img_id])
-            reconstruction_ = cv2.cvtColor(reconstruction_, cv2.COLOR_BGR2GRAY)
-            ssim_value,sim_img = ssim(img_, reconstruction_,
-                              data_range=np.max(reconstruction_) - np.min(reconstruction_),
-                             full=True)
-            anomaly_scores.append(ssim_value)
-        return np.array(np.expand_dims(anomaly_scores, axis = 1))
+                results_path=results_path, verbose=False)    
