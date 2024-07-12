@@ -1,6 +1,6 @@
 # Explaining Anomaly Detection based on VAE-GAN Model 🦠⚠️✅🫱🏻‍🫲🏼
 
-This Repositry contains codes to reproduce the results for our submission <b>'Can I trust my anomaly detection system? A case study' into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
+This Repositry contains codes to reproduce the results for our accepted paper <b>['Can I trust my anomaly detection system? A case study'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13) into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
 
 <center> <img src='imgs/logo.png' width="25%" height="25%" ></center>
 <p> we investigate the robustness of the Anomaly Detection process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
@@ -49,6 +49,15 @@ detect such samples.*
 [Muhammad Rashid<sup>1</sup>](https://scholar.google.com/citations?user=F5u_Z5MAAAAJ&hl=en), [Elvio G. Amparore<sup>1</sup>](https://scholar.google.com/citations?user=Hivlp1kAAAAJ&hl=en&oi=ao), [Enrico Ferrari<sup>2</sup>](https://scholar.google.com/citations?user=QOflGNIAAAAJ&hl=en&oi=ao), [Damiano Verda<sup>2</sup>](https://scholar.google.com/citations?user=t6o9YSsAAAAJ&hl=en&oi=ao)
 1. University of Torino, Computer Science Department, C.so Svizzera 185, 10149 Torino, Italy
 2. Rulex Innovation Labs, Rulex Inc., Via Felice Romani 9, 16122 Genova, Italy
+
+## Citation
+```
+@InProceedings{10.1007/978-3-031-63803-9_13, author="Rashid, Muhammad and Amparore, Elvio and Ferrari, Enrico and Verda, Damiano", editor="Longo, Luca and Lapuschkin, Sebastian and Seifert, Christin", title="Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI", booktitle="Explainable Artificial Intelligence",
+year="2024", publisher="Springer Nature Switzerland",
+address="Cham", pages="243--254"}
+```
+
+
 ## Keywords 🔍
 Anomaly detection · variational autoencoder · eXplainable
 AI
