@@ -1,6 +1,6 @@
 # Explaining Anomaly Detection based on VAE-GAN Model 🦠⚠️✅🫱🏻‍🫲🏼
 
-This Repositry contains codes to reproduce the results for our accepted paper <b>['Can I trust my anomaly detection system? A case study based on explainable ai'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13) into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
+This Repositry contains codes for our accepted paper <b>['Can I trust my anomaly detection system? A case study based on eXplainable AI'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13) into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
 
 <center> <img src='imgs/logo.png' width="25%" height="25%" ></center>
 <p> we investigate the robustness of the Anomaly Detection process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
