@@ -1,6 +1,6 @@
 # Explaining Anomaly Detection based on VAE-GAN Model 🦠⚠️✅🫱🏻‍🫲🏼
 
-This Repositry contains codes to reproduce the results for our accepted paper <b>['Can I trust my anomaly detection system? A case study'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13) into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
+This Repositry contains codes to reproduce the results for our accepted paper <b>['Can I trust my anomaly detection system? A case study based on explainable ai'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13) into [The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/) [17-19 July 2024]</b> 
 
 <center> <img src='imgs/logo.png' width="25%" height="25%" ></center>
 <p> we investigate the robustness of the Anomaly Detection process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭 </p>
@@ -32,6 +32,10 @@ This artifact is structured as follows:
 - two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_HAZELNUT.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_HAZELNUT.ipynb) which are main files to have all the working to reproduce the results for the proposed approach.
 - [`models.py`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/models.py) contains the codes for VAE GAN model used in the proposed appoach and [`utils.py`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/utils.py) contains all the functions required to run both notebooks ( `AD_VAE_GAN_SCREW.ipynb` & `VAE_GAN_AD_HAZELNUT.ipynb`).
 
+#Abstract
+Generative models based on variational autoencoders are a popular technique for detecting anomalies in images in a semi-supervised context. A common approach employs the anomaly score to detect the presence of anomalies, and it is known to reach high level of accuracy on benchmark datasets. However, since anomaly scores are computed from reconstruction disparities, they often obscure the detection of various spurious features, raising concerns regarding their actual efficacy.
+This case study explores the robustness of an anomaly detection system based on variational autoencoder generative models through the use of eXplainable AI methods. The goal is to get a different perspective on the real performances of anomaly detectors that use reconstruction differences. In our case study we discovered that, in many cases, samples are detected as anomalous for the wrong or misleading factors.
+
 ## Contributions 📃
 In this research, we:
 
@@ -56,7 +60,6 @@ detect such samples.*
 year="2024", publisher="Springer Nature Switzerland",
 address="Cham", pages="243--254"}
 ```
-
 
 ## Keywords 🔍
 Anomaly detection · variational autoencoder · eXplainable
