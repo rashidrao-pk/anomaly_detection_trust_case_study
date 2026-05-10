@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+message: "If you use this repository in your research, please cite the associated paper."
+title: "Explaining Anomaly Detection using VAE-GAN and eXplainable AI"
+version: "1.0.0"
+date-released: "2024-07-17"
+
+authors:
+  - family-names: Rashid
+    given-names: Muhammad
+  - family-names: Amparore
+    given-names: Elvio
+  - family-names: Ferrari
+    given-names: Enrico
+  - family-names: Verda
+    given-names: Damiano
+
+repository-code: "https://github.com/rashidrao-pk/anomaly_detection_trust_case_study"
+url: "https://github.com/rashidrao-pk/anomaly_detection_trust_case_study"
+license: MIT
+
+keywords:
+  - anomaly detection
+  - explainable AI
+  - XAI
+  - VAE-GAN
+  - variational autoencoder
+  - generative adversarial network
+  - trustworthy AI
+  - computer vision
+  - industrial inspection
+
+preferred-citation:
+  type: conference-paper
+  title: "Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI"
+  authors:
+    - family-names: Rashid
+      given-names: Muhammad
+    - family-names: Amparore
+      given-names: Elvio
+    - family-names: Ferrari
+      given-names: Enrico
+    - family-names: Verda
+      given-names: Damiano
+  editors:
+    - family-names: Longo
+      given-names: Luca
+    - family-names: Lapuschkin
+      given-names: Sebastian
+    - family-names: Seifert
+      given-names: Christin
+  collection-title: "Explainable Artificial Intelligence"
+  publisher:
+    name: "Springer Nature Switzerland"
+  year: 2024
+  start: 243
+  end: 254
+  doi: "10.1007/978-3-031-63803-9_13"
+  url: "https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13"

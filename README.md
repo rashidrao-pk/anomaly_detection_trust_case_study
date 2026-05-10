@@ -1,128 +1,259 @@
-# Explaining Anomaly Detection based on VAE-GAN Model 🦠⚠️✅🫱🏻‍🫲🏼
-      
-<img src="https://img.shields.io/badge/version-v0.0.0-rc0" alt="Version">
-      <a href ="https://github.com/DmitryRyumin/anomaly_detection_trust_case_study/blob/main/LICENSE">
-        <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
-      </a>
-<a href="https://github.com/rashidrao-pk/">
-<img src="https://img.shields.io/github/contributors/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub contributors">
-</a>
-<img src="https://img.shields.io/github/repo-size/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub repo size">
-      <a href="https://github.com/rashidrao-pk/">
-        <img src="https://img.shields.io/github/commit-activity/t/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub commit activity (branch)">
-      </a>
+# 🦠 # 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
 
+### Explainable and Trustworthy Anomaly Detection using VAE-GAN
 
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/graphs/contributors">
-<img src="https://img.shields.io/github/contributors/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub contributors">
+<div align="center">
+<a href="https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13">
+  <img src="https://img.shields.io/badge/Paper-Springer-red">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues?q=is%3Aissue+is%3Aclosed">
-<img src="https://img.shields.io/github/issues-closed/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub closed issues">
+<img src="https://img.shields.io/badge/XAI%202024-Published-success">
+<img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version">
+<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/LICENSE">
+<img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues">
-<img src="https://img.shields.io/github/issues/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub issues">
+<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study">
+<img src="https://img.shields.io/github/stars/rashidrao-pk/anomaly_detection_trust_case_study?style=social" alt="GitHub Stars">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/pulls?q=is%3Apr+is%3Aclosed">
-<img src="https://img.shields.io/github/issues-pr-closed/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub closed pull requests">
-</a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/pulls">
-<img src="https://img.shields.io/github/issues-pr/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub pull requests">
-</a>
-
-<img src="https://img.shields.io/github/last-commit/rashidrao-pk/anomaly_detection_trust_case_study" alt="GitHub last commit">
 <a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/watchers">
-<img src="https://img.shields.io/github/watchers/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub watchers">
+<img src="https://img.shields.io/github/watchers/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub Watchers">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/forks">
-<img src="https://img.shields.io/github/forks/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub forks">
+<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/network/members">
+<img src="https://img.shields.io/github/forks/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub Forks">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/stargazers">
-<img src="https://img.shields.io/github/stars/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub Repo stars">
-</a>
-<img src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fgithub.com%2Frashidrao-pk&label=Visitors&countColor=%23263759&style=flat" alt="Visitors">
+<img src="https://img.shields.io/github/repo-size/rashidrao-pk/anomaly_detection_trust_case_study" alt="Repository Size">
+<img src="https://img.shields.io/github/last-commit/rashidrao-pk/anomaly_detection_trust_case_study" alt="Last Commit">
+</div>
 
-This Repositry contains codes to for our accepted paper <b>['Can I trust my anomaly detection system? A case study based on eXaplainable AI'](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13)</b> into <b>[The 2nd World Conference on eXplainable Artificial Intelligence](https://xaiworldconference.com/2024/)</b> [17-19 July 2024].
+<!-- <div align="center">
+<img src="imgs/logo.png" width="25%">
+</div> -->
 
-<center> <img src='imgs/logo.png' width="25%" height="25%" ></center>
-<p> we investigate the robustness of the Anomaly Detection process followed by AI 🤖 based Quality Control Inspection being adopetd in Industries 🏭.</p>
+## 📖 Overview
 
-## Dependencies and Installation 🔧
-- Python 3.9.18
-- Tensorflow
-- Option: NVIDIA GPU + CUDA
+This repository contains the official implementation and experimental artifacts for the paper:
 
-Clone the repositry and install all the required libraries by running following lines:
+> **“Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI”**  
+> Published at the **2nd World Conference on eXplainable Artificial Intelligence (XAI 2024)**  
+> 📍 Valletta, Malta — July 17–19, 2024
 
-```
-git clone https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/
+📄 Paper Link:  
+[Springer Chapter](https://link.springer.com/chapter/10.1007/978-3-031-63803-9_13)
+
+🌐 Conference Website:  
+[XAI World Conference 2024](https://xaiworldconference.com/2024/)
+
+---
+## ✨ Highlights
+
+- ✅ VAE-GAN based anomaly detection
+- ✅ Explainability using SHAP and LIME
+- ✅ Trustworthiness evaluation using XAI
+- ✅ Quantitative explanation validation
+- ✅ Experiments on MVTec AD datasets
+- ✅ Industrial inspection use case
+
+
+## 🎯 Motivation
+
+Industrial anomaly detection systems based on Deep Learning are increasingly deployed in safety-critical environments such as:
+
+- 🏭 Industrial quality inspection  
+- 🤖 Robotics and automation  
+- ⚙️ Smart manufacturing pipelines  
+
+Despite achieving high anomaly detection accuracy, these systems often behave as **black boxes**, making it difficult to understand:
+
+- **Why** a sample is classified as anomalous
+- Whether the model focuses on the **correct visual regions**
+- If the anomaly decision is truly **trustworthy**
+
+This work investigates the robustness and reliability of AI-based anomaly detection systems by combining:
+
+- **VAE-GAN** for visual anomaly detection
+- **LIME** and **SHAP** for explainability
+- Ground-truth comparison using **optimal Jaccard similarity**
+
+---
+
+# 🧠 Proposed Framework
+
+Our framework combines:
+
+- **Variational Autoencoder Generative Adversarial Networks (VAE-GAN)**
+- **Explainable AI (XAI) techniques**
+- **Anomaly localization and trust analysis**
+
+to analyze whether anomaly detection systems identify anomalies for the **right reason**.
+
+---
+
+## How it works? 
+
+<div align="center">
+  <img src="imgs/anomaly_detection_xai.gif" width="90%">
+</div>
+
+# ⚙️ Dependencies and Installation
+
+## Requirements
+
+- Python 3.9+
+- TensorFlow
+- NumPy
+- OpenCV
+- Matplotlib
+- SHAP
+- LIME
+
+Optional:
+- NVIDIA GPU + CUDA support
+
+---
+
+## Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/rashidrao-pk/anomaly_detection_trust_case_study.git
+
 cd anomaly_detection_trust_case_study
+
 pip install -r requirements.txt
 ```
 
-## Supplementary Material 📊
-Following are the two Generated files for the results analyzed in the paper <a href='https://www.mvtec.com/company/research/datasets/mvtec-ad'>MVTech dataset </a> [Screw🔩 and Hazelnut 🌰], file containing results for;
-1. `Screw Dataset` is uploaded as <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.pdf'>**PDF** </a> and <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html'>**HTML** </a> file.
-2. `Hazelnut Dataset` is uploaded as <a href='https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.pdf'>**PDF**</a> and <a href='https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html'>**HTML** </a> file.
+---
 
-## Structure of the Artifact 💻
+# 📊 Supplementary Material
 
-This artifact is structured as follows:
+Experiments were conducted on the [MVTec Anomaly Detection Dataset](https://www.mvtec.com/company/research/datasets/mvtec-ad) using:
 
-- the [`results/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results) folder contains the results after running the artifact.
-- the [`models/`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/models) folder contains the models trained and used for testing purposes.
-- two notebooks [`AD_VAE_GAN_SCREW.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_SCREW.ipynb) and [`VAE_GAN_AD_HAZELNUT.ipynb`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/AD_VAE_GAN_HAZELNUT.ipynb) which are main files to have all the working to reproduce the results for the proposed approach.
-- [`models.py`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/models.py) contains the codes for VAE-GAN model used in the proposed appoach and [`utils.py`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/utils.py) contains all the functions required to run both notebooks ( `AD_VAE_GAN_SCREW.ipynb` & `VAE_GAN_AD_HAZELNUT.ipynb`).
+- 🔩 Screw
+- 🌰 Hazelnut
 
-## Contributions 📃
-In this research, we:
+### Generated Results
 
-1. *Review an explainable Anomaly Detection system architecture that combines VAE-GAN
-models with the LIME and SHAP explanation methods;*
-2. *Quantify the capacity of the Anomaly Detection system in performing anomaly detection
-using anomaly scores;*
-3. *Use XAI methods to determine if anomalies are actually detected for the
-right reason by comparing with a ground truth. Results show that it is not
-uncommon to find samples that were classified as anomalous, but for the
-wrong reason. We adopt a methodology based on optimal Jaccard score to
-detect such samples.*
+| Dataset | PDF Results | HTML Results |
+|---|---|---|
+| Screw | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html) |
+| Hazelnut | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.html) |
 
-## Paper PDF:
-Paper can be found at [LINK]() uploaded on <a href=''> <img src="https://cdn.jsdelivr.net/gh/DmitryRyumin/NewEraAI-Papers@main/images/arxiv-logo.svg" width="45" alt="" />
-</a>
-### Authors ✍️
+---
 
-| Sr. No. | Author Name | Affiliation | Google Scholar | 
-| :--:    | :--:        | :--:        | :--:           | 
-| 1. | Muhammad Rashid | University of Torino, Computer Science Department, C.so Svizzera 185, 10149 Torino, Italy | [Muhammad Rashid](https://scholar.google.com/citations?user=F5u_Z5MAAAAJ&hl=en) | 
-| 2. | Elvio G. Amparore | University of Torino, Computer Science Department, C.so Svizzera 185, 10149 Torino, Italy | [Elvio G. Amparore](https://scholar.google.com/citations?user=Hivlp1kAAAAJ&hl=en&oi=ao) | 
-| 3. | Enrico Ferrari | Rulex Innovation Labs, Rulex Inc., Via Felice Romani 9, 16122 Genova, Italy | [Enrico Ferrari](https://scholar.google.com/citations?user=QOflGNIAAAAJ&hl=en&oi=ao) | 
-| 4. | Damiano Verda | Rulex Innovation Labs, Rulex Inc., Via Felice Romani 9, 16122 Genova, Italy | [Damiano Verda](https://scholar.google.com/citations?user=t6o9YSsAAAAJ&hl=en&oi=ao) |
+# 📁 Repository Structure
 
-
-### Cite Us
-```
-@InProceedings{10.1007/978-3-031-63803-9_13, author="Rashid, Muhammad and Amparore, Elvio and Ferrari, Enrico and Verda, Damiano", editor="Longo, Luca and Lapuschkin, Sebastian and Seifert, Christin", title="Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI", booktitle="Explainable Artificial Intelligence",
-year="2024", publisher="Springer Nature Switzerland",
-address="Cham", pages="243--254"}
+```text
+├── models/                         # Pre-trained VAE-GAN models
+├── results/                        # Generated experimental results
+├── imgs/                           # Figures and repository assets
+├── utils.py                        # Utility functions
+├── models.py                       # VAE-GAN architecture
+├── AD_VAE_GAN_SCREW.ipynb          # Screw dataset experiments
+├── AD_VAE_GAN_HAZELNUT.ipynb       # Hazelnut dataset experiments
+└── requirements.txt
 ```
 
+---
 
-### Keywords 🔍
-Anomaly detection · variational autoencoder · eXplainable
-AI
+# 🔬 Main Contributions
 
-### Copyright Notice:
-MIT license
-Author: Muhammad Rashid (muhammad.rashid@unito.it)
-University of Turin, Italy.
+This research contributes to the field of trustworthy anomaly detection by:
 
-## Contributors
+### ✅ Explainable Anomaly Detection
+Combining **VAE-GAN** with **LIME** and **SHAP** to explain anomaly predictions.
 
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/graphs/contributors">
-  <img src="http://contributors.nn.ci/api?repo=rashidrao-pk/anomaly_detection_trust_case_study" alt="" />
-</a>
-<br>
+### ✅ Reliability Analysis
+Evaluating whether detected anomalies correspond to the actual defective regions.
 
-> [!NOTE]
-> Contributions to improve the completeness of this list are greatly appreciated. If you come across any overlooked papers, please **feel free to [*create pull requests*](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/pulls), [*open issues*](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues) or contact me via [*email*](mailto:muhammad.rashid@unito.it)**. Your participation is crucial to making this repository even better.
+### ✅ Trustworthiness Evaluation
+Demonstrating that anomaly detectors can sometimes classify samples correctly for the **wrong visual reasons**.
 
+### ✅ Quantitative Explanation Validation
+Using an **optimal Jaccard similarity-based methodology** to compare explanation maps against ground-truth annotations.
+
+---
+
+# 📄 Paper
+
+## Citation
+
+```bibtex
+@InProceedings{10.1007/978-3-031-63803-9_13,
+  author    = {Rashid, Muhammad and Amparore, Elvio and Ferrari, Enrico and Verda, Damiano},
+  editor    = {Longo, Luca and Lapuschkin, Sebastian and Seifert, Christin},
+  title     = {Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI},
+  booktitle = {Explainable Artificial Intelligence},
+  year      = {2024},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  pages     = {243--254}
+}
+```
+
+---
+
+# 🔑 Keywords
+
+- Anomaly Detection
+- Explainable AI (XAI)
+- Variational Autoencoder (VAE)
+- Generative Adversarial Networks (GANs)
+- Trustworthy AI
+- Industrial Inspection
+- Explainability for Computer Vision
+
+---
+
+# 👨‍💻 Authors
+
+- **Muhammad Rashid**, University of Turin, Italy
+- **Elvio Amparore**, University of Turin, Italy
+- **Enrico Ferrari**, RuleX Innovation labs, Genova, Italy
+- **Damiano Verda**, RuleX Innovation labs, Genova, Italy
+
+---
+
+# 📜 License
+
+This project is released under the MIT License.
+
+---
+
+# ⚠️ Limitations
+
+- Tested primarily on MVTec AD datasets
+- TensorFlow-based implementation
+- Explanation quality depends on segmentation quality
+- Computationally expensive for large-resolution images
+
+# 🚀 Future Work
+
+- PyTorch implementation
+- Real-time robotic inspection
+- ShapBPT integration
+- Improved explanation metrics
+- Vision-language anomaly explanations
+
+# 🤝 Contributing
+
+Contributions, suggestions, and improvements are welcome.
+
+If you find issues, missing references, or want to improve the implementation:
+
+- Open an issue
+- Submit a pull request
+- Contact the author directly
+
+We appreciate community contributions toward building more trustworthy and explainable AI systems.
+
+---
+
+# ⭐ Support the Project
+
+If you find this repository useful in your research, please consider:
+
+- ⭐ Starring the repository
+- 🍴 Forking the project
+- 📚 Citing our paper 
+
+Your support helps improve and expand future research in Explainable AI and anomaly detection.
