@@ -1,4 +1,4 @@
-# 🦠 # 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
+# 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
 
 ### Explainable and Trustworthy Anomaly Detection using VAE-GAN
 
@@ -17,16 +17,10 @@
 <a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/watchers">
 <img src="https://img.shields.io/github/watchers/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub Watchers">
 </a>
-<a href="https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/network/members">
-<img src="https://img.shields.io/github/forks/rashidrao-pk/anomaly_detection_trust_case_study?style=flat" alt="GitHub Forks">
-</a>
 <img src="https://img.shields.io/github/repo-size/rashidrao-pk/anomaly_detection_trust_case_study" alt="Repository Size">
 <img src="https://img.shields.io/github/last-commit/rashidrao-pk/anomaly_detection_trust_case_study" alt="Last Commit">
 </div>
 
-<!-- <div align="center">
-<img src="imgs/logo.png" width="25%">
-</div> -->
 
 ## 📖 Overview
 
