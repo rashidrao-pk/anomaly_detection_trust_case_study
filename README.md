@@ -228,15 +228,23 @@ This project is released under the MIT License.
 - Improved explanation metrics
 - Vision-language anomaly explanations
 
-# 🤝 Contributing
+# 🤝 Contributors Wanted
 
-Contributions, suggestions, and improvements are welcome.
+We are actively welcoming contributions from students, researchers, and developers interested in **explainable AI**, **visual anomaly detection**, and **trustworthy machine learning**.
 
-If you find issues, missing references, or want to improve the implementation:
+Good places to start:
 
-- Open an issue
-- Submit a pull request
-- Contact the author directly
+- [Add unit tests for anomaly scoring utilities](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/5) — beginner to intermediate
+- [Add a lightweight reproducibility tutorial](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/7) — beginner
+- [Add publication-quality comparison plots](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/10) — beginner to intermediate
+
+More advanced opportunities include adding [PatchCore](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/1) and [EfficientAD](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/2), extending [XAI evaluation](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/3), and comparing [SHAP, LIME, Grad-CAM, and Integrated Gradients](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues/4).
+
+Browse [all open issues](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/issues) to find a task matching your interests.
+
+Before starting, please comment on the relevant issue so we can coordinate the work and avoid duplication. Focused pull requests, documentation improvements, reproducibility fixes, and new experimental results are all welcome.
+
+Contributors will be acknowledged in the repository and relevant release notes. Research-paper authorship, where applicable, depends on substantial intellectual and experimental contributions and follows standard authorship guidelines.
 
 We appreciate community contributions toward building more trustworthy and explainable AI systems.
 
