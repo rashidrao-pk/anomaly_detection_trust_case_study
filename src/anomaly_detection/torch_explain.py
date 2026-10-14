@@ -5,7 +5,27 @@ import torch
 from .config import resolve_path
 from .data import load_rgb
 from .torch_train import load_checkpoint, device_for, checkpoint_path, output_root
-from .explain import quickshift_segments
+def quickshift_segments(image, target=100, seed=1234):
+    from skimage.segmentation import quickshift
+    def segment(distance):
+        try:
+            return quickshift(image, kernel_size=2, max_dist=distance,
+                              ratio=.95, rng=seed, sigma=.05)
+        except TypeError:
+            return quickshift(image, kernel_size=2, max_dist=distance,
+                              ratio=.95, random_seed=seed, sigma=.05)
+    left, right = 0., 100.
+    left_count = len(np.unique(segment(left)))
+    for _ in range(40):
+        midpoint=(left+right)/2
+        n=len(np.unique(segment(midpoint)))
+        if n <= target <= left_count:
+            right=midpoint
+        else:
+            left=midpoint
+            left_count=n
+    return segment(right)
+
 from .visualization import save_explanation
 
 

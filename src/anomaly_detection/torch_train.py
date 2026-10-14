@@ -13,7 +13,14 @@ from .config import resolve_path
 from .torch_models import VAEGAN, paper_losses
 from .torch_data import PaperTrainingDataset, EvaluationDataset
 from .scoring import reconstruction_error, image_scores
-from .evaluation import safe_auroc
+from sklearn.metrics import roc_auc_score
+
+
+def safe_auroc(labels, scores):
+    labels = np.asarray(labels)
+    if np.unique(labels).size < 2:
+        return None
+    return float(roc_auc_score(labels, scores))
 
 
 def device_for(name="auto"):
