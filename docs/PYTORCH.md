@@ -188,3 +188,15 @@ The comparison script requires **actual evaluation JSONs**, does not
 fabricate missing metrics, and records paths. To avoid output collisions,
 copy/rename each evaluation JSON immediately after each run. Do not
 change the active training process to load new code without restarting.
+
+
+## Startup environment summary
+
+Before epoch 1 (or the first resumed epoch), `train_torch.py` prints exactly
+three labeled startup lines: `[DATASET]` (resolved category directory and
+training image count), `[GPU]` (CUDA GPU name, physical memory and PyTorch
+CUDA build; or MPS/CPU), and `[TRAIN]` (variant, epochs, starting epoch,
+batch size, input resolution, latent dimension, learning rate, augmentation,
+workers, checkpoint frequency and output checkpoint). GPU memory is total
+physical device memory, **not** current available VRAM. Startup lines do
+not change model math or checkpoint format.

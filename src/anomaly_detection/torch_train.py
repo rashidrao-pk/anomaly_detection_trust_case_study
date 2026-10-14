@@ -91,6 +91,26 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
     total = int(cfg.get("epochs",10))
     if resume and start >= total:
         raise ValueError(f"Checkpoint already at epoch {start}, target is {total}")
+    dataset_dir = root / cfg["category"]
+    if device.type == "cuda":
+        props = torch.cuda.get_device_properties(device)
+        gpu_line = (
+            f"[GPU] name={props.name} | memory={props.total_memory / (1024 ** 3):.1f} GiB "
+            f"| CUDA={torch.version.cuda} | device={device}"
+        )
+    elif device.type == "mps":
+        gpu_line = "[GPU] name=Apple Metal/MPS | memory=shared | device=mps"
+    else:
+        gpu_line = "[GPU] name=CPU | memory=N/A | device=cpu"
+    print(f"[DATASET] path={dataset_dir} | category={cfg['category']} | training_images={len(ds)}", flush=True)
+    print(gpu_line, flush=True)
+    print(
+        f"[TRAIN] variant={variant} | epochs={total} | starting_epoch={start} "
+        f"| batch_size={cfg.get('batch_size', 32)} | image_size=128 "
+        f"| latent_dim={cfg.get('latent_dim', 32)} | lr={lr:g} | "
+        f"augmentation={mode} | workers={num_workers} | save_every={save_every} "
+        f"| checkpoint={path}", flush=True
+    )
     for epoch in range(start,total):
         model.train()
         sums = {k:0. for k in ("vae_loss","reconstruction_loss","kl_loss","disc_loss","gen_loss")}
