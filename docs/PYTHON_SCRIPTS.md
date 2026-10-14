@@ -72,3 +72,15 @@ comparisons have been run and documented.
 - [ ] Confirm masks align and compute original Jaccard protocol
 - [ ] Run both LIME and SHAP with example images
 - [ ] Update all entry points and remove notebooks from main only after parity
+
+## XAI 2024 LIME parity notes
+
+The LIME CLI now follows the original screw notebook's reconstruction-loss
+predictor (sum of squared pixel errors), posterior-mean reconstruction,
+Quickshift segmentation of the 50/50 input-reconstruction blend with target 100
+segments, reconstruction-image masking baseline, 5000 perturbations, seed 1234
+and signed beta heatmap with a symmetric blue-white-red scale.
+
+The original notebook's per-image optimal Jaccard thresholding, study-level
+aggregation, and full SHAP parity remain to be validated. Treat AUROC and
+explanations as provisional until numeric parity is established.

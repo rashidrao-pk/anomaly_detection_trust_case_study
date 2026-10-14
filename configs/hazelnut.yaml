@@ -15,4 +15,4 @@ explanation:
   image_index: 0
   method: lime
   num_samples: 100
-  score_scale: 0.1
+  target_segments: 100\n  random_state: 1234\n  batch_size: 200

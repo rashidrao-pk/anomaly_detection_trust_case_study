@@ -1,58 +1,95 @@
-"""Black-box LIME and SHAP explanations of reconstruction anomaly scores.
+"""Faithful LIME port of the XAI 2024 screw notebook (cells 34, 37, 40, 42).
 
-Explanations target image-level anomaly probability calibrated by a provided
-scale factor. This is NOT a learned classification probability.
+Target: sum of squared RGB reconstruction errors from the encoder posterior mean.
+Mask: deterministic reconstruction. Segmentation: Quickshift of 50/50 blend.
+The original source is preserved on the xai-2024-paper branch.
 """
 from pathlib import Path
 import numpy as np
 from .data import load_rgb
-from .inference import predict_scores
+from .inference import reconstruct, predict_scores
 from .visualization import save_explanation
 
-def anomaly_probability(scores, scale):
-    if scale <= 0:
-        raise ValueError("scale must be > 0")
-    values = np.maximum(np.asarray(scores, dtype=np.float64), 0.0)
-    # Smooth monotonic mapping avoids hard clipping all high anomaly scores to 1.
-    return values / (values + scale)
+def reconstruction_mse(model, batch):
+    """Notebook lime_predict_loss: reduce_sum((decoder(z_mean)-input)^2)."""
+    batch = np.asarray(batch, dtype=np.float32)
+    recon = reconstruct(model, batch, deterministic=True)
+    return np.sum(np.square(recon - batch), axis=(1, 2, 3))
 
-def explain_image(cfg, model, image_path, method="lime", num_samples=100, scale=0.1, output=None):
-    image=load_rgb(image_path,int(cfg.get("image_size",128)))
-    observed_scores = []
-    def probabilities(batch):
-        scores,_,_=predict_scores(model,np.asarray(batch,dtype=np.float32))
-        observed_scores.extend(np.asarray(scores, dtype=np.float64).tolist())
-        anomaly=anomaly_probability(scores,scale)
-        return np.column_stack([1-anomaly, anomaly])
-    if method=="lime":
-        from lime import lime_image
-        exp=lime_image.LimeImageExplainer(random_state=int(cfg.get("seed",42)))
-        explanation=exp.explain_instance(image, probabilities,
-            top_labels=2,num_samples=num_samples,hide_color=0)
-        label=1
-        weights=dict(explanation.local_exp[label])
-        heat=np.zeros(explanation.segments.shape,dtype=np.float32)
-        for key,value in weights.items():
-            heat[explanation.segments==key]=value
-    elif method=="shap":
+def quickshift_segments(image, target=100, seed=1234):
+    """Port notebook search_segment_number, with bounded binary search."""
+    from skimage.segmentation import quickshift
+    def segment(distance):
+        # scikit-image 0.22 uses rng; earlier versions used random_seed.
+        try:
+            seg = quickshift(image, kernel_size=2, max_dist=distance,
+                             ratio=0.95, rng=seed, sigma=0.05)
+        except TypeError:
+            seg = quickshift(image, kernel_size=2, max_dist=distance,
+                             ratio=0.95, random_seed=seed, sigma=0.05)
+        return len(np.unique(seg)), seg
+    left, right = 0.0, 100.0
+    left_count, _ = segment(left)
+    right_count, _ = segment(right)
+    iterations = 0
+    while iterations < 40 and right_count != target:
+        iterations += 1
+        midpoint = (left + right) / 2
+        midpoint_count, _ = segment(midpoint)
+        if midpoint_count <= target <= left_count:
+            right, right_count = midpoint, midpoint_count
+        else:
+            left, left_count = midpoint, midpoint_count
+    return segment(right)[1]
+
+def explain_image(cfg, model, image_path, method="lime", num_samples=None, scale=None, output=None):
+    image = load_rgb(image_path, int(cfg.get("image_size", 128)))
+    reconstruction = reconstruct(model, image[None])[0]
+    settings = cfg.get("explanation", {})
+    samples = int(num_samples if num_samples is not None else settings.get("num_samples", 5000))
+    seed = int(settings.get("random_state", 1234))
+    if method == "lime":
+        from lime.lime_image import LimeImageExplainer
+        blend = (image + reconstruction) * 0.5
+        segments = quickshift_segments(blend, int(settings.get("target_segments", 100)), seed)
+        print(f"[xai-2024] Quickshift segments: {len(np.unique(segments))}")
+        explainer = LimeImageExplainer(random_state=seed)
+        # LIME expects 2-D [n_samples, n_outputs]; a single continuous
+        # regression target is handled here as the sole output (index 0).
+        def predictor(batch):
+            return reconstruction_mse(model, batch)[:, None]
+        explanation = explainer.explain_instance(
+            image,
+            predictor,
+            labels=(0,),
+            segmentation_fn=lambda _img: segments,
+            hide_color=reconstruction,
+            batch_size=int(settings.get("batch_size", 200)),
+            num_samples=samples,
+        )
+        weights = dict(explanation.local_exp[0])
+        heat = np.zeros(segments.shape, dtype=np.float32)
+        for index, value in weights.items():
+            heat[segments == index] = value
+        print(f"[xai-2024] reconstruction MSE: {reconstruction_mse(model, image[None])[0]:.6g}")
+        print(f"[xai-2024] LIME beta: min={heat.min():.6g}, max={heat.max():.6g}, nonzero={np.count_nonzero(heat)}")
+    elif method == "shap":
         import shap
-        masker=shap.maskers.Image("blur(8,8)",image.shape)
-        explainer=shap.Explainer(probabilities,masker,output_names=["normal","anomaly"])
-        result=explainer(image[None],max_evals=max(num_samples,2*image.size+1),outputs=[1])
-        # (N,H,W,C,1): reduce absolute contributions to pixel map.
-        heat=np.mean(np.abs(np.asarray(result.values)[0,...,0]),axis=-1)
+        # Original notebook's reconstruction-image masker and scalar loss.
+        masker = shap.maskers.Image(reconstruction, reconstruction.shape)
+        def predictor(batch):
+            return reconstruction_mse(model, batch)[:, None]
+        explainer = shap.Explainer(predictor, masker, output_names=["Anomaly"])
+        required = 2 * image.size + 1
+        result = explainer(image[None], max_evals=max(samples, required))
+        values = np.asarray(result.values)[0]
+        if values.ndim == 4:
+            values = values[..., 0]
+        heat = np.mean(values, axis=-1) if values.ndim == 3 else values
     else:
         raise ValueError(f"Unsupported method: {method}")
-    if observed_scores:
-        low, high = min(observed_scores), max(observed_scores)
-        print(f"[explain] Perturbed-image anomaly scores: min={low:.8g}, max={high:.8g}")
-        if np.isclose(low, high, rtol=1e-6, atol=1e-10):
-            print("[explain] WARNING: nearly constant model response to perturbations; explanation may be uninformative.")
-    print(f"[explain] Explanation map: min={float(np.min(heat)):.8g}, max={float(np.max(heat)):.8g}, nonzero={int(np.count_nonzero(heat))}/{heat.size}")
-    if not np.any(heat):
-        print("[explain] WARNING: all-zero explanation; verify perturbation response, score scale and segmentation.")
-    _,maps,recon=predict_scores(model,image[None])
-    if output:
-        save_explanation(image,recon[0],maps[0],heat,output)
-        np.save(str(Path(output).with_suffix(".npy")),heat)
+    if output is not None:
+        _, maps, _ = predict_scores(model, image[None])
+        save_explanation(image, reconstruction, maps[0], heat, output, signed=True)
+        np.save(str(Path(output).with_suffix(".npy")), heat)
     return heat
