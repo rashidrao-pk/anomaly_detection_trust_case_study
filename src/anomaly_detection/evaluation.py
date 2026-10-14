@@ -19,6 +19,9 @@ def evaluate(cfg, checkpoint=None):
     output.mkdir(parents=True,exist_ok=True)
     if checkpoint is None:
         checkpoint=resolve_path(cfg,cfg["checkpoint"])
+    print(f'[+] Loading model from {checkpoint} ...')
+    print(f'[+] Evaluating {cfg["category"]} using checkpoint {checkpoint} and saving results to {output}')
+
     model=load_model(cfg,checkpoint)
     rows=[]
     all_masks=[]

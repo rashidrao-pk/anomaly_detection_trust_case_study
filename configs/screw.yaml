@@ -15,4 +15,6 @@ explanation:
   image_index: 0
   method: lime
   num_samples: 100
-  target_segments: 100\n  random_state: 1234\n  batch_size: 200
+  target_segments: 100
+  random_state: 1234
+  batch_size: 200
