@@ -49,7 +49,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, latent_dim=32):
+    def __init__(self, latent_dim=32, paper_aligned=False):
         super().__init__()
         self.fc = nn.Sequential(nn.Linear(latent_dim, 8 * 8 * 64), nn.ReLU())
         blocks = []
@@ -61,7 +61,11 @@ class Decoder(nn.Module):
             ])
             if i < 3:
                 blocks.append(nn.BatchNorm2d(channels[i+1], eps=1e-3, momentum=.01))
-        blocks.extend([SameConv2d(32, 3, 3), nn.Sigmoid()])
+        if paper_aligned:
+            # TF Conv2DTranspose(3, 3, strides=1, padding='same')
+            blocks.extend([nn.ConvTranspose2d(32, 3, 3, 1, 1), nn.Sigmoid()])
+        else:
+            blocks.extend([SameConv2d(32, 3, 3), nn.Sigmoid()])
         self.blocks = nn.Sequential(*blocks)
 
     def forward(self, latent):
@@ -85,10 +89,10 @@ class Discriminator(nn.Module):
 
 
 class VAEGAN(nn.Module):
-    def __init__(self, latent_dim=32):
+    def __init__(self, latent_dim=32, paper_aligned=False):
         super().__init__()
         self.encoder = Encoder(latent_dim)
-        self.decoder = Decoder(latent_dim)
+        self.decoder = Decoder(latent_dim, paper_aligned=paper_aligned)
         self.discriminator = Discriminator()
 
     def forward(self, images, sample=True):

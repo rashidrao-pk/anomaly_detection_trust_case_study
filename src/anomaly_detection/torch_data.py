@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import functional as TF
 from torchvision.transforms import InterpolationMode
+from .paper_augmentation import paper_aligned_transform
 from .data import training_paths, evaluation_samples
 
 
@@ -20,6 +21,8 @@ class PaperTrainingDataset(Dataset):
     def __getitem__(self, index):
         with Image.open(self.paths[index]) as img:
             image = img.convert("RGB").resize((self.size, self.size), Image.Resampling.BILINEAR)
+        if self.augmentation == "paper_aligned":
+            return TF.to_tensor(paper_aligned_transform(image, self.category))
         if self.augmentation == "paper":
             # Corresponds in *range* to ImageDataGenerator, not identical
             # transforms, interpolation, RNG ordering or pixel alignment.

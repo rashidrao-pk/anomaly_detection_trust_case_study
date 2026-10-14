@@ -38,9 +38,9 @@ def output_root(cfg):
 
 def checkpoint_path(cfg):
     variant = cfg.get("torch_variant", "initial")
-    if variant not in ("initial", "paper_faithful"):
+    if variant not in ("initial", "paper_faithful", "paper_aligned"):
         raise ValueError(f"Unknown torch_variant: {variant}")
-    suffix = "" if variant == "initial" else "_paper_faithful"
+    suffix = "" if variant == "initial" else "_" + variant
     return output_root(cfg) / "trained_models" / (
         f"{cfg['category']}_VAE_GAN_{int(cfg.get('epochs', 10))}{suffix}.pt")
 
@@ -48,7 +48,7 @@ def checkpoint_path(cfg):
 def load_checkpoint(cfg, path, device):
     # Explicit weights_only avoids loading arbitrary Python objects.
     state = torch.load(path, map_location=device, weights_only=True)
-    model = VAEGAN(int(state["latent_dim"])).to(device)
+    model = VAEGAN(int(state["latent_dim"]), paper_aligned=state.get("torch_variant") == "paper_aligned").to(device)
     model.load_state_dict(state["model"])
     return model, state
 
@@ -64,16 +64,18 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
     root = resolve_path(cfg, cfg["dataset_root"])
     if int(cfg.get("image_size", 128)) != 128:
         raise ValueError("Archived architecture requires 128x128 images")
-    mode = "none" if no_augmentation or cfg.get("training_profile", "paper") == "modern" else "paper"
+    variant = cfg.get("torch_variant", "initial")
+    profile = cfg.get("training_profile", "paper")
+    mode = "none" if no_augmentation or profile == "modern" else ("paper_aligned" if variant == "paper_aligned" else "paper")
     ds = PaperTrainingDataset(root, cfg["category"], 128, seed, mode)
     loader = DataLoader(ds, batch_size=int(cfg.get("batch_size", 32)),
                         shuffle=True, num_workers=num_workers, drop_last=False)
-    model = VAEGAN(int(cfg.get("latent_dim", 32))).to(device)
+    model = VAEGAN(int(cfg.get("latent_dim", 32)), paper_aligned=variant == "paper_aligned").to(device)
     lr = float(cfg.get("learning_rate", .001))
     variant = cfg.get("torch_variant", "initial")
     if variant not in ("initial", "paper_faithful"):
         raise ValueError(f"Unknown torch_variant: {variant}")
-    epsilon = 1e-7 if variant == "paper_faithful" else 1e-8
+    epsilon = 1e-7 if variant in ("paper_faithful", "paper_aligned") else 1e-8
     vae_opt = torch.optim.Adam(list(model.encoder.parameters())+list(model.decoder.parameters()),lr=lr,eps=epsilon)
     disc_opt = torch.optim.Adam(model.discriminator.parameters(),lr=lr,eps=epsilon)
     path = checkpoint_path(cfg); path.parent.mkdir(parents=True, exist_ok=True)
@@ -87,6 +89,8 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
         history = state.get("history", [])
         if state.get("torch_variant", "initial") != variant:
             raise ValueError("Checkpoint training variant differs from requested variant")
+        if state.get("training_profile") != mode:
+            raise ValueError("Checkpoint augmentation mode differs from requested mode; use a fresh run")
     elif path.exists():
         raise FileExistsError(f"Will not overwrite {path}; use --resume or change output_dir/epochs")
     if monitor_every_k < 0:
@@ -130,7 +134,7 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
             images = images.to(device)
             batch = images.shape[0]
             mean, logvar, recon = model(images)
-            if variant == "paper_faithful":
+            if variant in ("paper_faithful", "paper_aligned"):
                 # Original models.py computes D and VAE losses from the same
                 # forward parameters, then applies both gradient sets.
                 # Discriminator is called once on a concatenated real/fake batch,

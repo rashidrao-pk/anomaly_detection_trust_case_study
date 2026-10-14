@@ -14,8 +14,8 @@ if __name__=="__main__":
     p.add_argument("--epochs",type=int)
     p.add_argument("--device",choices=["auto","cuda","cpu","mps"],default="auto")
     p.add_argument("--resume",action="store_true")
-    p.add_argument("--variant",choices=["initial","paper_faithful"],default="initial",
-                   help="initial preserves previous training; paper_faithful matches original gradient ordering")
+    p.add_argument("--variant",choices=["initial","paper_faithful","paper_aligned"],default="initial",
+                   help="initial: existing port; paper_faithful: original update ordering; paper_aligned: aligned augmentation and decoder")
     p.add_argument("--num-workers",type=int,default=0)
     p.add_argument("--save-every",type=int,default=1)
     p.add_argument("--no-augmentation",action="store_true")

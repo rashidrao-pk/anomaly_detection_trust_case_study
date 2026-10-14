@@ -251,3 +251,34 @@ The outdated `tests/test_explanation_scores.py` imported the removed
 deterministic reconstruction), using a NumPy-only mock so CI can collect
 and execute tests without TensorFlow. This is a unit test of the scoring
 contract, not a replacement for TensorFlow model integration tests.
+
+
+## Paper-aligned third PyTorch variant
+
+The `--variant paper_aligned` option is an additive experiment, **not** a
+silent change to existing paper_faithful checkpoints. It keeps original
+simultaneous-gradient computation and the inverted discriminator labels;
+changes the last decoder layer to ConvTranspose2d(3×3); and uses
+`src/anomaly_detection/paper_augmentation.py`, which implements the
+ImageDataGenerator-inspired affine transformation with SciPy (nearest
+boundary extension, bilinear order 1), brightness, hazelnut flips and
+**custom rotations after the affine step**, matching the original order.
+Keras shear_range=0.05 is in *degrees*, not radians; zoom is sampled
+independently along both axes. Keras seeds/affine interpolation, PIL
+rounding, TF BatchNorm and initialization still prevent numerical identity.
+Do not claim exact replication without a controlled comparison.
+
+Install `scipy` in the Epito PyTorch environment and start a new run:
+
+```bash
+python -m pip install scipy
+python scripts/train_torch.py --config configs/screw_epito.yaml \\
+  --variant paper_aligned --epochs 30000 --device cuda \\
+  --num-workers 4 --save-every 1 --monitor-every-k 100
+```
+
+The new checkpoint name ends in `_paper_aligned.pt`, so existing 
+`_paper_faithful.pt` checkpoints remain untouched. Stop an old process
+before sharing GPU resources. The `--resume` option refuses checkpoints
+from a different augmentation profile. Data augmentation never applies to
+normal/anomalous reconstruction-monitor input or test evaluation.
