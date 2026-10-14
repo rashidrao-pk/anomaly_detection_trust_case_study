@@ -23,3 +23,5 @@ python scripts/explain.py --config configs/screw.yaml --method shap
 - [Paper figure regeneration](PAPER_FIGURES.md) — archive inventory and runnable commands
 
 - [Per-image eight-panel paper figures](PAPER_IMAGE.md) — recreate imgs/good_0...png
+
+- [Checkpoint reconstruction visual QA](CHECKPOINT_TESTING.md) — one normal and one sample per defect type
