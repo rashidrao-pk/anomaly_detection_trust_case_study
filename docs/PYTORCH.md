@@ -69,10 +69,7 @@ since it is part of the file name. Avoid two jobs writing the same checkpoint.
   while the Keras original computes losses in shared GradientTapes before
   both optimizer updates; BatchNorm statistics also differ. Results must be
   treated as a research reimplementation rather than numerical reproduction.
-- This port does **not yet** convert the archived SHAP/LIME explanation
-  pipelines, model weights or paper-figure regeneration to PyTorch. Use the
-  PyTorch training/evaluation CLIs now; explanatory methods need independent
-  implementation and fidelity validation.
+- The PyTorch LIME/SHAP CLI reproduces the *refactored* paper explanation\n  targets (posterior-mean reconstruction MSE, Quickshift masks, SHAP image\n  masker), but it has not passed qualitative/numerical parity checks with\n  archived explanations. The original paper-figure regeneration and\n  TensorFlow checkpoint weights are **not** converted to PyTorch.
 - Original notebook's training time and epochs cannot be inferred from
   `epochs: 10`, which is a smoke-test setting.
 - Prior result for the **archived TensorFlow** Screw checkpoint: image AUROC
@@ -86,3 +83,19 @@ For each run save: Git commit, copied YAML, GPU, CUDA/PyTorch versions, seed,
 training duration, checkpoint path and the evaluator's `metrics.json`.
 Report independently the archived TF checkpoint and the new PyTorch checkpoint;
 avoid claiming framework parity without matched runs and augmentation audits.
+
+
+## PyTorch explanations
+
+Install optional explanation dependencies in the PyTorch environment:
+```bash
+python -m pip install lime shap scikit-image matplotlib
+python scripts/explain_torch.py --config configs/screw_epito.local.yaml \\
+  --method lime --samples 1000 --device cuda
+python scripts/explain_torch.py --config configs/screw_epito.local.yaml \\
+  --method shap --samples 100000 --device cuda
+```
+SHAP image masking is computationally costly. Outputs go to
+`<output_dir>/pytorch/explanations/` (PNG and NPY). This is an
+implementation of the *existing refactored explanation algorithm*,
+not a verified exact replay of the 2024 notebook.
