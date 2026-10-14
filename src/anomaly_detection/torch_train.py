@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 from .config import resolve_path
 from .torch_models import VAEGAN, paper_losses
 from .torch_data import PaperTrainingDataset, EvaluationDataset
+from .torch_monitor import choose_pair, write_pair_metadata, save_monitor_image
 from .scoring import reconstruction_error, image_scores
 from sklearn.metrics import roc_auc_score
 
@@ -53,7 +54,7 @@ def load_checkpoint(cfg, path, device):
 
 
 def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
-        no_augmentation=False):
+        no_augmentation=False, monitor_every_k=0):
     device = device_for(device_name)
     seed = int(cfg.get("seed", 42))
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
@@ -88,6 +89,15 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
             raise ValueError("Checkpoint training variant differs from requested variant")
     elif path.exists():
         raise FileExistsError(f"Will not overwrite {path}; use --resume or change output_dir/epochs")
+    if monitor_every_k < 0:
+        raise ValueError("monitor_every_k must be nonnegative")
+    monitor_pair = None
+    monitor_dir = None
+    if monitor_every_k:
+        monitor_dir = output_root(cfg) / "monitor" / variant
+        monitor_pair = choose_pair(ds.paths, root, cfg["category"], seed)
+        write_pair_metadata(monitor_pair, monitor_dir)
+        print(f"[MONITOR] every={monitor_every_k} epochs | normal={monitor_pair[0][0]} | anomaly={monitor_pair[1][0]} | output={monitor_dir}", flush=True)
     total = int(cfg.get("epochs",10))
     if resume and start >= total:
         raise ValueError(f"Checkpoint already at epoch {start}, target is {total}")
@@ -189,6 +199,9 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
             f"gen_loss={row['gen_loss']:.6f} "
             f"time={row['seconds']:.1f}s", flush=True
         )
+        if monitor_every_k and (epoch + 1) % monitor_every_k == 0:
+            monitor_png = save_monitor_image(model, monitor_pair, epoch + 1, device, monitor_dir)
+            print(f"[MONITOR] epoch={epoch+1} saved={monitor_png}", flush=True)
         if (epoch+1)%save_every==0 or epoch+1==total:
             state={"epoch":epoch+1,"latent_dim":int(cfg.get("latent_dim",32)),
                    "model":model.state_dict(),"vae_optimizer":vae_opt.state_dict(),

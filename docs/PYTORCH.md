@@ -200,3 +200,32 @@ batch size, input resolution, latent dimension, learning rate, augmentation,
 workers, checkpoint frequency and output checkpoint). GPU memory is total
 physical device memory, **not** current available VRAM. Startup lines do
 not change model math or checkpoint format.
+
+
+## Periodic reconstruction monitoring
+
+Set `--monitor-every-k K` (default 0, disabled) to save a PNG grid every
+K epochs. At startup the trainer randomly chooses **one normal image from
+`train/good` and one anomalous image from `test/<defect>`**, using a
+separate seeded random generator. The selected pair stays **fixed for the
+entire run** so images are comparable across epochs; choices are recorded
+in `examples.json`. No training augmentation is applied to the monitor
+inputs. Each PNG has two rows (normal training and anomalous test) and
+four columns (original, deterministic posterior-mean reconstruction,
+absolute-error grayscale map, ground-truth mask; blank mask for normal).
+The error-map grayscale uses a fixed [0,1] scale, not per-image
+normalization. The anomalous test image is **qualitative monitoring only**:
+do not use it to optimize training or select a checkpoint for final test
+performance; use a held-out validation set for model selection.
+
+```bash
+python scripts/train_torch.py --config configs/screw_epito.yaml \\
+  --variant paper_faithful --epochs 30000 --device cuda \\
+  --num-workers 4 --save-every 1 --monitor-every-k 100
+```
+
+Outputs: `<output_dir>/pytorch/monitor/paper_faithful/epoch_000100.png`,
+`epoch_000200.png`, ... and `examples.json`. This option works on
+`--resume` but cannot be injected into a process that is already running;
+restart with `--resume` and the same `--epochs` if necessary. The image
+rows are labeled; columns are input, reconstruction, error, mask.
