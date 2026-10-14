@@ -229,3 +229,15 @@ Outputs: `<output_dir>/pytorch/monitor/paper_faithful/epoch_000100.png`,
 `--resume` but cannot be injected into a process that is already running;
 restart with `--resume` and the same `--epochs` if necessary. The image
 rows are labeled; columns are input, reconstruction, error, mask.
+
+## GitHub Actions unit checks
+
+The `Python unit checks` workflow intentionally installs a small set of
+lightweight dependencies rather than GPU libraries. Pure Python helpers
+must import without TensorFlow or Matplotlib. Heavy model dependencies are
+imported lazily at the point of training, checkpoint restoration,
+explanation rendering, or visualization. PyTorch-specific tests use
+`pytest.importorskip("torch")`, and TensorFlow integration tests should
+be executed in a separate TensorFlow-equipped CI environment when added.
+This ensures the lightweight runner genuinely executes all dependency-free
+tests without masking failed assertions.

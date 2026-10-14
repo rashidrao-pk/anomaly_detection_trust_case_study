@@ -8,7 +8,6 @@ from pathlib import Path
 import numpy as np
 from .data import load_rgb
 from .inference import reconstruct, predict_scores
-from .visualization import save_explanation
 
 def reconstruction_mse(model, batch):
     """Notebook lime_predict_loss: reduce_sum((decoder(z_mean)-input)^2)."""
@@ -89,6 +88,7 @@ def explain_image(cfg, model, image_path, method="lime", num_samples=None, scale
     else:
         raise ValueError(f"Unsupported method: {method}")
     if output is not None:
+        from .visualization import save_explanation
         _, maps, _ = predict_scores(model, image[None])
         save_explanation(image, reconstruction, maps[0], heat, output, signed=True)
         np.save(str(Path(output).with_suffix(".npy")), heat)

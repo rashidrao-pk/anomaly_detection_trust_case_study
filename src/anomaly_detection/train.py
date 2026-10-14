@@ -6,7 +6,6 @@ import random
 import numpy as np
 from .config import resolve_path
 from .data import make_train_dataset,make_paper_train_generator
-from .models import build_model
 
 def checkpoint_prefix(cfg):
     output=resolve_path(cfg,cfg.get("output_dir","outputs"))/"trained_models"
@@ -44,6 +43,7 @@ def _reload_components(model,prefix):
 
 def train(cfg,resume=False):
     import tensorflow as tf
+    from .models import build_model
     seed=int(cfg.get("seed",42))
     random.seed(seed); np.random.seed(seed); tf.random.set_seed(seed)
     root=resolve_path(cfg,cfg["dataset_root"])
