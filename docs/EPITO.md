@@ -248,3 +248,54 @@ GPU is detected and run a small test before training. On aarch64 use an
 architecture-specific verified GPU build instead; do not assume the x86_64
 pip extras work. `nvidia-smi` reports driver support, not installed
 TensorFlow CUDA runtime libraries.
+
+## TensorFlow 2.15 pip CUDA resolution fails on ARM64 (Epito03)
+
+Observed: `tensorflow[and-cuda]==2.15.0` resolves to AWS's ARM64
+`tensorflow-cpu-aws`, but its extra requires unavailable
+`nvidia-cublas-cu12==12.2.5.6`. This is a **package platform/distribution
+problem**, not evidence of a driver failure. Do not force a newer cuBLAS
+version, pretend the AWS CPU wheel enables CUDA, or downgrade cluster drivers.
+
+Check alternatives before spending time on more pip attempts:
+
+```bash
+uname -m
+command -v singularity || true
+command -v enroot || true
+command -v pyxis || true
+command -v docker || true
+sinfo -o '%P %G %D'
+```
+
+**Path A (simplest where offered):** request an x86_64 GPU node and create
+a fresh Python 3.10/3.11 environment there with TensorFlow 2.15 and matching
+CUDA extras. Confirm `uname -m` *inside that allocation* before installing.
+
+**Path B (ARM64):** ask cluster support for a container runtime and an
+NVIDIA TensorFlow ARM SBSA image. NVIDIA's TF image release `24.02-tf2-py3`
+contains TF 2.15 and CUDA 12.3.2; **image architecture, GPU exposure,
+cluster site policy and supplementary Python dependencies must be verified**
+on the target node. NVIDIA stopped publishing TensorFlow framework
+containers after 25.02. Alternative ARM SBSA NVIDIA TensorFlow wheels
+may be available through NVIDIA's own distribution; match Python,
+CUDA and TensorFlow versions before adopting one.
+
+After acquiring a *real GPU-enabled* TensorFlow build, verify:
+
+```bash
+python - <<'PY'
+import tensorflow as tf
+devices=tf.config.list_physical_devices('GPU')
+print(tf.__version__,devices)
+assert devices,'TensorFlow GPU unavailable'
+with tf.device('/GPU:0'):
+    a=tf.random.normal((128,128))
+    b=tf.matmul(a,a)
+print(b.device)
+PY
+```
+
+Upstream documentation: https://www.tensorflow.org/install/pip ,
+NVIDIA release notes:
+https://docs.nvidia.com/deeplearning/frameworks/tensorflow-release-notes/rel-24-02.html .
