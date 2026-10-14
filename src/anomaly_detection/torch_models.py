@@ -77,7 +77,7 @@ class Discriminator(nn.Module):
             SameConv2d(128, 64, 5, 2), nn.ReLU(), nn.MaxPool2d(2),
             nn.BatchNorm2d(64, eps=1e-3, momentum=.01),
             SameConv2d(64, 32, 4, 2), nn.ReLU(), nn.Flatten(),
-            nn.Linear(32 * 2 * 2, 128), nn.ReLU(), nn.Linear(128, 1),
+            nn.Linear(32 * 4 * 4, 128), nn.ReLU(), nn.Linear(128, 1),
         )
 
     def forward(self, images):
