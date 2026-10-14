@@ -4,7 +4,8 @@ image_size: 128
 latent_dim: 32
 seed: 42
 batch_size: 32
-epochs: 10\ntraining_profile: paper
+epochs: 10
+training_profile: paper
 learning_rate: 0.001
 checkpoint: models/screw_VAE_GAN_30000/screw_VAE_GAN_30000_model
 output_dir: outputs/screw

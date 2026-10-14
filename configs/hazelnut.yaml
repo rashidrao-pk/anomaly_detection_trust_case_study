@@ -4,7 +4,8 @@ image_size: 128
 latent_dim: 32
 seed: 42
 batch_size: 32
-epochs: 10\ntraining_profile: paper
+epochs: 10
+training_profile: paper
 learning_rate: 0.001
 checkpoint: models/hazelnut_VAE_GAN_30000/hazelnut_VAE_GAN_30000_model
 output_dir: outputs/hazelnut
@@ -15,4 +16,6 @@ explanation:
   image_index: 0
   method: lime
   num_samples: 100
-  target_segments: 100\n  random_state: 1234\n  batch_size: 200
+  target_segments: 100
+  random_state: 1234
+  batch_size: 200
