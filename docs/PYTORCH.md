@@ -241,3 +241,13 @@ explanation rendering, or visualization. PyTorch-specific tests use
 be executed in a separate TensorFlow-equipped CI environment when added.
 This ensures the lightweight runner genuinely executes all dependency-free
 tests without masking failed assertions.
+
+
+### October 2026 CI regression
+
+The outdated `tests/test_explanation_scores.py` imported the removed
+`anomaly_probability` helper. It now tests the actual XAI 2024
+`reconstruction_mse` explanation target (sum of squared RGB errors,
+deterministic reconstruction), using a NumPy-only mock so CI can collect
+and execute tests without TensorFlow. This is a unit test of the scoring
+contract, not a replacement for TensorFlow model integration tests.
