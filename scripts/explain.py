@@ -9,8 +9,6 @@ sys.path.insert(0, str(ROOT))
 
 from anomaly_detection.config import load_config, resolve_path
 from anomaly_detection.data import image_files
-from anomaly_detection.inference import load_model
-from anomaly_detection.explain import explain_image
 
 def choose_image(cfg, image=None, anomaly_type=None, index=None):
     """Choose a test image from dataset_root/category/test using YAML defaults."""
@@ -58,6 +56,8 @@ def main():
         output = str(directory / f"{image.parent.name}_{image.stem}_{method}.png")
     checkpoint = args.checkpoint or resolve_path(cfg, cfg["checkpoint"])
     print(f"Selected image: {image}")
+    from anomaly_detection.inference import load_model
+    from anomaly_detection.explain import explain_image
     model = load_model(cfg, checkpoint)
     explain_image(cfg, model, image, method=method, num_samples=samples, scale=scale, output=output)
     print(f"Saved explanation: {output}")
