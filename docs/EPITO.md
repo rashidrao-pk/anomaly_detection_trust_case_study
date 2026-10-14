@@ -104,3 +104,35 @@ screw_100/
 - `evaluate.py` writes results to the configured output directory; an
   archived/new model comparison should be done separately after both
   checkpoints are accessible on Epito.
+
+
+## Python 3.10 and Conda unavailable (Epito02)
+
+If `python3.10` and `conda` are not available but `python3.11` is installed,
+create the environment using the standard library without admin privileges:
+
+```bash
+python3.11 -m venv /beegfs/home/mrashid/envs/xai-ad
+source /beegfs/home/mrashid/envs/xai-ad/bin/activate
+python --version
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install 'tensorflow[and-cuda]==2.15.0'
+cd ~/repos/AD/anomaly_detection_trust_case_study
+python -m pip install -e '.[test]'
+python -m pip check
+```
+
+Python 3.11 is permitted by `pyproject.toml` (`>=3.9,<3.12`).
+TensorFlow 2.15 CUDA availability must be tested on an allocated GPU compute
+node. Check `nvidia-smi` then run:
+
+```bash
+python -c "import tensorflow as tf; print(tf.__version__, tf.config.list_physical_devices('GPU'))"
+```
+
+The existing Slurm script names the variable `CONDA_ENV_PATH`, but actually
+uses its `bin/python` executable, so the same variable may point to this venv.
+If `venv` fails because `ensurepip` is unavailable, use a user-installed
+Python distribution or ask cluster support instead of attempting privileged
+system installations. TensorFlow Addons is an old optional dependency in the
+current packaging: confirm `pip check` and imports before submitting jobs.
