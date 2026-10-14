@@ -123,3 +123,20 @@ squeue -u "$USER"
 For 100 epochs choose a **different** `OUT_ROOT` and set `EPOCHS=100`.
 Check `sinfo` / `scontrol show partition epito` if the cluster changes
 partition or GRES syntax. The script does not mutate the archived YAML.
+
+## Training loss diagnostics
+
+The native trainer logs all five per-epoch components, including the same
+three headline terms shown by the TensorFlow notebook:
+`vae_loss`, `disc_loss`, `gen_loss`. It additionally prints
+`reconstruction_loss` and `kl_loss`. Discriminator loss is displayed
+with eight decimal places rather than rounding to four decimals, since
+near-zero losses can indicate discriminator saturation. These metrics are
+also written to the checkpoint history CSV. The reported adversarial and
+discriminator values use a **sequential** discriminator/VAE step, unlike
+the original shared-gradient-tape TensorFlow update; differences do not by
+themselves establish faithful paper reproduction.
+
+Pulling this logging change does **not** change the output of an already
+running Python process. Stop/restart or resume from a checkpoint to use the
+new logging. Keep the current checkpoints intact.

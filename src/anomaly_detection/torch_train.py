@@ -114,7 +114,15 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
         row={"epoch":epoch+1,"seconds":round(time.perf_counter()-t0,2)}
         row.update({k:sums[k]/count for k in sums})
         history.append(row)
-        print(f"[epoch {epoch+1:03d}/{total}] vae={row['vae_loss']:.4f} disc={row['disc_loss']:.4f} time={row['seconds']:.1f}s",flush=True)
+        print(
+            f"[epoch {epoch+1:03d}/{total}] "
+            f"vae_loss={row['vae_loss']:.4f} "
+            f"reconstruction_loss={row['reconstruction_loss']:.4f} "
+            f"kl_loss={row['kl_loss']:.4f} "
+            f"disc_loss={row['disc_loss']:.8f} "
+            f"gen_loss={row['gen_loss']:.6f} "
+            f"time={row['seconds']:.1f}s", flush=True
+        )
         if (epoch+1)%save_every==0 or epoch+1==total:
             state={"epoch":epoch+1,"latent_dim":int(cfg.get("latent_dim",32)),
                    "model":model.state_dict(),"vae_optimizer":vae_opt.state_dict(),
