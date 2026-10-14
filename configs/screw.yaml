@@ -8,3 +8,11 @@ epochs: 10
 learning_rate: 0.0001
 checkpoint: models/screw_VAE_GAN_30000/screw_VAE_GAN_30000_model
 output_dir: outputs/screw
+
+# Default image selection for scripts/explain.py
+explanation:
+  anomaly_type: scratch_head
+  image_index: 0
+  method: lime
+  num_samples: 100
+  score_scale: 0.1

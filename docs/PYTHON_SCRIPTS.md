@@ -40,11 +40,17 @@ No images are downloaded automatically or committed.
 python scripts/train.py --config configs/screw.yaml
 python scripts/evaluate.py --config configs/screw.yaml
 python scripts/evaluate.py --config configs/hazelnut.yaml
-python scripts/explain.py --config configs/screw.yaml --image data/mvtec_ad/screw/test/scratch_head/000.png --method lime
+python scripts/explain.py --config configs/screw.yaml --method lime
+python scripts/explain.py --config configs/hazelnut.yaml --anomaly-type crack --index 2 --method lime
 python scripts/reproduce_paper.py
 ```
 
-Adjust `--image` to an actual image path. Newly trained checkpoints are written
+The explanation command selects a test image using `dataset_root`, `category`, and
+`explanation.anomaly_type` / `explanation.image_index` in the YAML config. The index
+is zero-based and files are sorted. Use `--anomaly-type` and `--index` to override
+the config, or `--image` for an explicitly supplied file. Results are saved under
+the configured `output_dir/explanations/` unless `--output` is passed.
+Newly trained checkpoints are written
 to `outputs/<category>/vae_gan`; supply `--checkpoint outputs/<category>/vae_gan`
 to evaluate a new model.
 
