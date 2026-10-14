@@ -19,3 +19,5 @@ python scripts/compare_models.py --config configs/screw.yaml
 python scripts/explain.py --config configs/screw.yaml --method lime
 python scripts/explain.py --config configs/screw.yaml --method shap
 ```
+
+- [Paper figure regeneration](PAPER_FIGURES.md) — archive inventory and runnable commands
