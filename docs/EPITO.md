@@ -226,3 +226,25 @@ Grace Hopper / ARM64 clusters, a site-approved NVIDIA TensorFlow container
 may be preferable to rebuilding or attempting incompatible pip wheels.
 Run training only after verifying TensorFlow detects a GPU in the allocated
 compute environment.
+
+## Epito03 A100 diagnostic (2026-10-14)
+
+Observed on epito03: NVIDIA A100 PCIe 40 GB, driver 575.57.08, reported
+driver CUDA capability 12.9, and no Apptainer command. This does **not**
+establish the node CPU architecture or that TensorFlow is installed.
+The shared Pixi executable is x86-64; it was not tested for execution
+on epito03. Before installing:
+
+```bash
+which python; python --version; uname -m
+python -m pip --version
+python -c "import tensorflow as tf; print(tf.__version__, tf.config.list_physical_devices('GPU'))"
+```
+
+If TensorFlow is missing, check `uname -m` first. On supported Linux x86_64
+Python 3.10/3.11 environments, consider
+`python -m pip install 'tensorflow[and-cuda]==2.15.0'`. Verify that the
+GPU is detected and run a small test before training. On aarch64 use an
+architecture-specific verified GPU build instead; do not assume the x86_64
+pip extras work. `nvidia-smi` reports driver support, not installed
+TensorFlow CUDA runtime libraries.
