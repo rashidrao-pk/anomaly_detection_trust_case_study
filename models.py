@@ -6,7 +6,6 @@
 ###  Please Cite us if you use this code
 ###  thanks
 ###############################################################################################
-import utils as ut
 import tensorflow.keras
 from tensorflow.keras import backend as K
 import tensorflow as tf
@@ -125,7 +124,7 @@ class VAE(keras.Model):
         }
 ###########################################################################################
 class VAE_GAN(keras.Model):    
-    def __init__(self, vae, discriminator, opti1=keras.optimizers.Adam(), opti2=keras.optimizers.Adam(), opti3=keras.optimizers.Adam(), **kwargs):
+    def __init__(self, vae, discriminator, opti1=None, opti2=None, opti3=None, **kwargs):
         super(VAE_GAN, self).__init__(**kwargs)
         self.encoder = vae.encoder
         self.decoder = vae.decoder
@@ -138,9 +137,12 @@ class VAE_GAN(keras.Model):
         self.disc_loss_tracker = keras.metrics.Mean(name="disc_loss")
         self.gen_loss_tracker = keras.metrics.Mean(name="gen_loss")
         self.disc_loss = keras.losses.BinaryCrossentropy()
-        self.vae_optimizer = opti1
-        self.gen_optimizer = opti2
-        self.disc_optimizer = opti3
+        # Construct optimizers per model instance; legacy Adam avoids Apple Metal
+        # performance warnings in the TensorFlow 2.15/Keras 2 environment.
+        optimizer_class = keras.optimizers.legacy.Adam
+        self.vae_optimizer = opti1 if opti1 is not None else optimizer_class()
+        self.gen_optimizer = opti2 if opti2 is not None else optimizer_class()
+        self.disc_optimizer = opti3 if opti3 is not None else optimizer_class()
     def call(self,x):
         z_mean, z_log_var, z = self.encoder(x)
         reconstruction = self.decoder(z)

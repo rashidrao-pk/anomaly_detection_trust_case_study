@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+data/
+outputs/
+
+
+.ipynb_checkpoints/
+
+__pycache__
+
+src/anomaly_detection_trust_case_study.egg-info
+src/anomaly_detection_trust_case_study.egg-info/**

@@ -259,3 +259,19 @@ If you find this repository useful in your research, please consider:
 - 📚 Citing our paper 
 
 Your support helps improve and expand future research in Explainable AI and anomaly detection.
+
+---
+
+## Python-script refactoring (draft)
+
+A notebook-free, configurable implementation is under development in
+[`refactor/python-scripts`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/refactor/python-scripts).
+See [Python CLI guide](docs/PYTHON_SCRIPTS.md) for supported commands, experiment
+configuration, testing and current scientific limitations.
+
+**Published XAI 2024 source:** The complete original notebooks, trained models,
+results and files are preserved at
+[`xai-2024-paper`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper).
+That branch is the frozen reference. The Python refactor should not be
+considered a validated reproduction until checkpoint/loading and experimental
+parity have been established.
