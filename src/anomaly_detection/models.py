@@ -5,7 +5,7 @@ published implementation is preserved unchanged on xai-2024-paper.
 """
 from models import Model_VAE_GAN_functions, VAE, VAE_GAN
 
-def build_model(latent_dim=64, image_size=128, learning_rate=1e-4):
+def build_model(latent_dim=64, image_size=128, learning_rate=1e-3):
     if image_size != 128:
         raise ValueError("The archived decoder only supports image_size=128")
     import tensorflow as tf

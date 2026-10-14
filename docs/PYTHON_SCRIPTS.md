@@ -107,3 +107,35 @@ The default training config runs 10 epochs. This is not comparable to the
 archived 30,000-epoch model as a controlled architecture comparison. Matching
 training duration, preprocessing, augmentation and initialization are needed
 for a fair replication experiment. Training has NOT been run in this PR.
+
+## Notebook-faithful training profile and resume
+
+The `training_profile: paper` mode uses the original notebook's
+`Data2.load_data(..., augmentation_target='custom')`: Keras
+`ImageDataGenerator` on `train/`, 128px RGB, rotation ±40 degrees,
+width/height shifts 0.05, brightness 0.8–1.2, shear/zoom 0.05,
+nearest fill and rescale 1/255, plus the original random 90°/270°
+preprocessing and additional flips for hazelnut. Batch size defaults to 32.
+The original notebook uses three Adam optimizers at their default learning
+rate 0.001 (legacy.Adam here for Apple Metal support).
+
+```bash
+python scripts/train.py --config configs/screw.yaml
+python scripts/train.py --config configs/screw.yaml --resume --resume-epochs 50
+python scripts/compare_models.py --config configs/screw.yaml
+```
+
+Resume appends metrics to the same CSV and overwrites the same five named
+checkpoint files; copy the run before resuming if you need each intermediate
+checkpoint. `--resume-epochs` is **additional** epochs. Naming retains the
+original initial `epochs` field so subsequent resume runs resolve the
+same directory. The notebook likewise used CSV-row counts as its resume
+epoch index, while it did not explicitly guarantee restoring Adam's momentum
+or learning-rate-scheduler state. This is **weight-based**, not bitwise-exact
+stateful resumption. Results cannot be expected to match the archived weights
+because random history and the full original training run are unavailable.
+
+This default remains a 10-epoch smoke test to avoid launching a 30,000-epoch
+job unexpectedly. To reproduce the notebook's specified training duration,
+change `epochs` to 30000 in a new run directory (or use staged training
+in a separate experiment config).

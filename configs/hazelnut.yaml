@@ -3,9 +3,9 @@ dataset_root: /Users/rashid/data/DS/AD/MVtec
 image_size: 128
 latent_dim: 32
 seed: 42
-batch_size: 8
-epochs: 10
-learning_rate: 0.0001
+batch_size: 32
+epochs: 10\ntraining_profile: paper
+learning_rate: 0.001
 checkpoint: models/hazelnut_VAE_GAN_30000/hazelnut_VAE_GAN_30000_model
 output_dir: outputs/hazelnut
 
