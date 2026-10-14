@@ -73,8 +73,7 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
                         shuffle=True, num_workers=num_workers, drop_last=False)
     model = VAEGAN(int(cfg.get("latent_dim", 32)), paper_aligned=variant == "paper_aligned").to(device)
     lr = float(cfg.get("learning_rate", .001))
-    variant = cfg.get("torch_variant", "initial")
-    if variant not in ("initial", "paper_faithful"):
+    if variant not in ("initial", "paper_faithful", "paper_aligned"):
         raise ValueError(f"Unknown torch_variant: {variant}")
     epsilon = 1e-7 if variant in ("paper_faithful", "paper_aligned") else 1e-8
     vae_opt = torch.optim.Adam(list(model.encoder.parameters())+list(model.decoder.parameters()),lr=lr,eps=epsilon)
