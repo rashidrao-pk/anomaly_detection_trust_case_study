@@ -1,5 +1,5 @@
 category: screw
-dataset_root: data/mvtec_ad
+dataset_root: /Users/rashid/data/DS/AD/MVtec
 image_size: 128
 latent_dim: 64
 seed: 42

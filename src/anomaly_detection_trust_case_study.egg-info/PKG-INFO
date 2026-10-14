@@ -1,0 +1,22 @@
+Metadata-Version: 2.4
+Name: anomaly-detection-trust-case-study
+Version: 0.2.0
+Summary: Notebook-free VAE-GAN anomaly detection and XAI experiments
+Requires-Python: <3.12,>=3.9
+License-File: LICENSE
+Requires-Dist: tensorflow==2.15.0
+Requires-Dist: tensorflow-addons==0.22.0
+Requires-Dist: numpy==1.26.3
+Requires-Dist: scikit-learn==1.4.0
+Requires-Dist: matplotlib==3.8.2
+Requires-Dist: Pillow>=9.0
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: lime
+Requires-Dist: shap
+Requires-Dist: pandas==2.2.0
+Requires-Dist: opencv-python==4.9.0.80
+Requires-Dist: scikit-image==0.22.0
+Requires-Dist: scipy==1.12.0
+Provides-Extra: test
+Requires-Dist: pytest>=7; extra == "test"
+Dynamic: license-file
