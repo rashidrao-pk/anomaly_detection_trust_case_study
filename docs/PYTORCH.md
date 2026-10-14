@@ -282,3 +282,29 @@ The new checkpoint name ends in `_paper_aligned.pt`, so existing
 before sharing GPU resources. The `--resume` option refuses checkpoints
 from a different augmentation profile. Data augmentation never applies to
 normal/anomalous reconstruction-monitor input or test evaluation.
+
+
+## Training loss plots every K epochs
+
+Pass `--save-tplots-k 10` to render training curves at epochs 10, 20, 30,
+etc. Each snapshot shows all epochs recorded so far, including checkpoint
+history loaded by `--resume`. Three plot groups are saved: VAE and
+reconstruction, KL, and adversarial (generator and discriminator). Each
+figure is written in **PNG and PDF** at
+`<output_dir>/pytorch/training_plots/<variant>/`, with filenames such as
+`vae_reconstruction_epoch_000010.png` and
+`adversarial_epoch_000010.pdf`. The discriminator is not plotted on the
+same axis as the large reconstruction loss. Matplotlib is imported only
+when a plot is due. Defaults to disabled, `--save-tplots-k 0`.
+
+```bash
+python -m pip install matplotlib
+python scripts/train_torch.py --config configs/screw_epito.yaml \\
+  --variant paper_aligned --epochs 30000 --device cuda \\
+  --num-workers 4 --save-every 1 --monitor-every-k 100 \\
+  --save-tplots-k 10
+```
+
+To enable this on an already running experiment, stop after a checkpoint
+is written, update the code, then restart with identical configuration and
+`--resume`. Prior history will be included in new plots.

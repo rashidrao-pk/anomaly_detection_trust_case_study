@@ -20,12 +20,14 @@ if __name__=="__main__":
     p.add_argument("--save-every",type=int,default=1)
     p.add_argument("--no-augmentation",action="store_true")
     p.add_argument("--monitor-every-k",type=int,default=0,metavar="K",help="save reconstruction visualization every K epochs (0 disables)")
+    p.add_argument("--save-tplots-k",type=int,default=0,metavar="K",help="save training loss PNG/PDF curves every K epochs (0 disables)")
     a=p.parse_args()
     if a.epochs is not None and a.epochs<1:p.error("--epochs must be positive")
     if a.save_every<1:p.error("--save-every must be positive")
     if a.monitor_every_k<0:p.error("--monitor-every-k must be >= 0")
+    if a.save_tplots_k<0:p.error("--save-tplots-k must be >= 0")
     cfg=load_config(a.config)
     if a.epochs is not None:cfg["epochs"]=a.epochs
     cfg["torch_variant"]=a.variant
     print(fit(cfg,device_name=a.device,resume=a.resume,num_workers=a.num_workers,
-              save_every=a.save_every,no_augmentation=a.no_augmentation,monitor_every_k=a.monitor_every_k))
+              save_every=a.save_every,no_augmentation=a.no_augmentation,monitor_every_k=a.monitor_every_k,save_tplots_k=a.save_tplots_k))
