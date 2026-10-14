@@ -308,3 +308,15 @@ python scripts/train_torch.py --config configs/screw_epito.yaml \\
 To enable this on an already running experiment, stop after a checkpoint
 is written, update the code, then restart with identical configuration and
 `--resume`. Prior history will be included in new plots.
+
+
+### Rolling training-plot files
+
+Training plots now use **stable filenames** and are overwritten at every
+`--save-tplots-k` interval. For example, with `--save-tplots-k 10`, the
+files `vae_reconstruction.png` / `.pdf`, `kl.png` / `.pdf`, and
+`adversarial.png` / `.pdf` show all losses through the latest plotting
+epoch; the current epoch remains visible in each plot title. This avoids
+accumulating epoch-numbered copies. Existing historical `*_epoch_*.png`
+and `*_epoch_*.pdf` files, if any, are not automatically deleted. Remove
+them manually after confirming the new rolling plots are being created.

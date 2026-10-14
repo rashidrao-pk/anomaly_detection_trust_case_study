@@ -4,7 +4,7 @@ import numpy as np
 
 
 def save_training_plots(history, destination, epoch):
-    """Save complete loss histories as PNG/PDF every configured K epochs.
+    """Overwrite stable PNG/PDF filenames with full loss histories every K epochs.
 
     Plot data come from the in-memory history already saved in the CSV;
     figures include all epochs from the beginning, including resumed history.
@@ -31,5 +31,5 @@ def save_training_plots(history, destination, epoch):
         ax.legend(loc="best")
         fig.tight_layout()
         for ext in ("png", "pdf"):
-            fig.savefig(destination / f"{stem}_epoch_{epoch:06d}.{ext}", dpi=200)
+            fig.savefig(destination / f"{stem}.{ext}", dpi=200)
         plt.close(fig)
