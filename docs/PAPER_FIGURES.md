@@ -69,3 +69,21 @@ For archived experiment CSVs, keep the default archived checkpoint.
 Only override `--checkpoint` when the CSV contains experiments for that
 same model; otherwise the scatter's X-axis and Jaccard values come from
 different models and the figure is scientifically inconsistent.
+
+
+## 2026-10-14 fix: experiment row indices
+
+The notebook experiment CSV uses a **zero-based image position within each
+anomaly-type directory** (`img_no=0`), not the image's filename stem
+(`000.png`). The automated scorer now enumerates the sorted MVTec test
+files independently within each anomaly type and joins on
+`(a_type, img_no)`. It uses **the computed scores on the scatter X-axis**
+as well as for the classification threshold, avoiding a mismatch between
+archived CSV scores and newly computed scores.
+
+This matches the notebook's indexed loading only if the sorted image order
+matches its TensorFlow directory loader order. Compare the produced
+`threshold_scores.csv` with the CSV `anomaly_score` values before
+claiming exact numeric reproduction. CSV rows may represent a subset of
+images. The script retains automatic threshold calibration on the full test
+set and does not yet reproduce the notebook's batch-limited subset.

@@ -75,14 +75,18 @@ def automatic_threshold(cfg,checkpoint,out):
     model=load_model(cfg,checkpoint)
     records=[]
     size=int(cfg.get("image_size",128))
+    group_indices={}
     for path,label,_ in samples:
+        kind=path.parent.name
+        index=group_indices.get(kind,0)
+        group_indices[kind]=index+1
         # Notebook uses image_dataset_from_directory(interpolation='nearest').
         with Image.open(path) as im:
             x=np.asarray(im.convert("RGB").resize((size,size),Image.Resampling.NEAREST),
                          dtype=np.float32)/255.
         reconstructed=reconstruct(model,x[None])[0]
         score=float(np.max(np.abs(reconstructed-x)))
-        records.append((str(path),int(label),score,path.parent.name,path.stem))
+        records.append((str(path),int(label),score,kind,str(index)))
     scores=np.asarray([r[2] for r in records])
     labels=np.asarray([r[1] for r in records],dtype=bool)
     positives=int(labels.sum()); negatives=int((~labels).sum())
@@ -116,13 +120,13 @@ def jaccard_figure(path,out,category,method,blend,threshold,score_lookup):
     data=[r for r in rows(path) if r.get("mask_type")==blend and r.get(col) not in ("",None)]
     if not data:raise ValueError("No matching "+blend+" records in "+str(path))
     for r in data:
-        key=(r["a_type"],str(r["img_no"]).split(".")[0])
-        if key not in score_lookup:raise ValueError(f"No computed anomaly score for {key}; check experiment CSV and sample alignment")
+        key=(r["a_type"],str(int(float(r["img_no"]))))
+        if key not in score_lookup:raise ValueError(f"No computed anomaly score for {key}; check category ordering and experiment CSV subset")
         r["_computed_score"]=score_lookup[key]
     fig,ax=plt.subplots(figsize=(4,3))
     for truth,pred,color,label in ((False,False,"blue","normal/correct"),(False,True,"orange","normal/incorrect"),(True,True,"green","anomaly/correct"),(True,False,"red","anomaly/incorrect")):
         sub=[r for r in data if (r["a_type"]!="good")==truth and (float(r["_computed_score"])>threshold)==pred]
-        if sub:ax.scatter([float(r["anomaly_score"]) for r in sub],[float(r[col])-(0.15 if not truth else 0.) for r in sub],c=color,s=6,alpha=.6,label=label+" "+str(len(sub)))
+        if sub:ax.scatter([float(r["_computed_score"]) for r in sub],[float(r[col])-(0.15 if not truth else 0.) for r in sub],c=color,s=6,alpha=.6,label=label+" "+str(len(sub)))
     ax.axvline(threshold,ls=":",color="black",linewidth=.8)
     ax.set(xlabel="Anomaly score",ylabel="Maximum Jaccard",ylim=(-.25,1.05))
     ax.legend(fontsize=6)
