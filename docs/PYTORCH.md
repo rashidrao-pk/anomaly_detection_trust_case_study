@@ -99,3 +99,27 @@ SHAP image masking is computationally costly. Outputs go to
 `<output_dir>/pytorch/explanations/` (PNG and NPY). This is an
 implementation of the *existing refactored explanation algorithm*,
 not a verified exact replay of the 2024 notebook.
+
+## Scheduled Epito A100 training (no TensorFlow)
+
+Use a compute-node-accessible PyTorch environment (defaults to
+`/beegfs/home/mrashid/pt_312/bin/python`). The scheduler script generates
+a Linux-specific YAML for the selected category. Confirm the dataset path
+before submitting:
+
+```bash
+cd ~/repos/AD/anomaly_detection_trust_case_study
+git pull --ff-only origin main
+mkdir -p logs
+export DATASET_ROOT=/beegfs/home/mrashid/datasets/AD/MVTec
+export PYTHON_BIN=/beegfs/home/mrashid/pt_312/bin/python
+export OUT_ROOT=/beegfs/home/mrashid/experiments/vaegan_torch/screw_test
+test -d "$DATASET_ROOT/screw/train/good"
+"$PYTHON_BIN" -c "import torch,torchvision,sklearn,yaml,PIL; print(torch.__version__,torch.cuda.is_available())"
+CATEGORY=screw EPOCHS=10 sbatch --export=ALL scripts/hpc/train_torch_slurm.sh
+squeue -u "$USER"
+```
+
+For 100 epochs choose a **different** `OUT_ROOT` and set `EPOCHS=100`.
+Check `sinfo` / `scontrol show partition epito` if the cluster changes
+partition or GRES syntax. The script does not mutate the archived YAML.
