@@ -84,3 +84,26 @@ and signed beta heatmap with a symmetric blue-white-red scale.
 The original notebook's per-image optimal Jaccard thresholding, study-level
 aggregation, and full SHAP parity remain to be validated. Treat AUROC and
 explanations as provisional until numeric parity is established.
+
+## Newly trained vs archived checkpoint comparison
+
+The notebook saved five TensorFlow checkpoints and one CSV per run. The CLI now
+uses the same suffixes: `_model`, `_vae`, `_encoder`, `_decoder`,
+`_discriminator`, and `.csv`, under
+`outputs/<category>/trained_models/<category>_VAE_GAN_<epochs>`.
+
+```bash
+python scripts/train.py --config configs/screw.yaml
+python scripts/compare_models.py --config configs/screw.yaml
+```
+
+The comparison evaluates the **new** checkpoint first and the archived checkpoint
+second, on the exact same sorted MVTec test images and masks. It writes
+`outputs/screw/comparison/metrics_comparison.json` and `per_image_scores.csv`.
+It uses the **current CLI max-MAE protocol**, not the original notebook's
+reported paper metrics, and should not be interpreted as paper-result parity.
+
+The default training config runs 10 epochs. This is not comparable to the
+archived 30,000-epoch model as a controlled architecture comparison. Matching
+training duration, preprocessing, augmentation and initialization are needed
+for a fair replication experiment. Training has NOT been run in this PR.
