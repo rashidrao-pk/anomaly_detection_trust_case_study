@@ -160,3 +160,33 @@ using an HPC-approved tool such as micromamba/uv/pixi, subject to site policy,
 or ask cluster support. Never use sudo or install system packages on compute
 nodes. Verify GPU access in the Slurm allocation and keep Python 3.12 out of
 the TensorFlow 2.15 environment.
+
+
+## Epito02: micromamba and pixi available (ARM64)
+
+On epito02, system Python is 3.12.3 and `conda` is not installed, but
+`/beegfs/home/mrashid/apps/bin/micromamba` and
+`/beegfs/home/mrashid/.pixi/bin/pixi` are available. Create Python 3.10
+without administrator privileges:
+
+```bash
+micromamba create -p /beegfs/home/mrashid/envs/xai-ad -c conda-forge python=3.10 pip -y
+eval "$(micromamba shell hook --shell bash)"
+micromamba activate /beegfs/home/mrashid/envs/xai-ad
+python --version
+uname -m
+nvidia-smi
+```
+
+The displayed system Python configuration reports `aarch64-linux-gnu`,
+so verify the compute-node architecture with `uname -m`. **Do not assume**
+`tensorflow[and-cuda]==2.15.0` wheels are available for ARM64: first run
+`python -m pip index versions tensorflow` and check platform wheel support;
+no compatible build may be offered. The conventional TensorFlow pip CUDA
+extras often target Linux x86_64; installing CPU-only TensorFlow would not
+fulfill GPU training. Confirm a compatible CUDA-enabled TensorFlow build,
+container or HPC-approved module on the target node before submitting Slurm.
+
+Keep the existing PyTorch environment `pt_312` untouched. Once a suitable
+Python/TensorFlow GPU installation is available, point `CONDA_ENV_PATH` at
+this micromamba environment; the Slurm script uses its `bin/python`.
