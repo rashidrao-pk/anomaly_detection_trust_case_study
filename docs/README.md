@@ -27,3 +27,5 @@ python scripts/explain.py --config configs/screw.yaml --method shap
 - [Checkpoint reconstruction visual QA](CHECKPOINT_TESTING.md) — one normal and one sample per defect type
 
 - [EfficientAD baseline (issue #2)](EFFICIENTAD.md) — optional environment, training, and open parity checks
+
+- [Epito HPC Slurm training](EPITO.md) — Linux CUDA, BeeGFS, checkpoint jobs

@@ -60,3 +60,8 @@ That resumes the prefix named in the YAML (`screw_VAE_GAN_10`) and appends
 history to that run. Do **not** combine `--epochs` with `--resume`, because
 `--epochs` would change the checkpoint prefix used to find the saved weights.
 Use a distinct experiment configuration if you need multiple resumed runs.
+
+
+## Epito HPC
+
+See [EPITO.md](EPITO.md) for Slurm submission and Linux CUDA installation.
