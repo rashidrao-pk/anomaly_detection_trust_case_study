@@ -1,10 +1,10 @@
 """Checkpoint restoration and reconstruction prediction."""
 from pathlib import Path
 import numpy as np
-from .models import build_model
 from .scoring import reconstruction_error, image_scores
 
 def load_model(cfg, checkpoint=None):
+    from .models import build_model
     model = build_model(cfg.get("latent_dim",64), cfg.get("image_size",128))
     if checkpoint is not None:
         checkpoint = str(checkpoint)
