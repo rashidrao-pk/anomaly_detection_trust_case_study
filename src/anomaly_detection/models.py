@@ -1,7 +1,7 @@
 """Compatibility bridge to the original TensorFlow 2.15 VAE-GAN architecture.
 
-The reference model architecture lives in the repo-root models.py and remains
-unchanged while the notebook-free pipeline is verified against published weights.
+The compatible model architecture lives in the repo-root models.py. The
+published implementation is preserved unchanged on xai-2024-paper.
 """
 from models import Model_VAE_GAN_functions, VAE, VAE_GAN
 
@@ -16,9 +16,9 @@ def build_model(latent_dim=64, image_size=128, learning_rate=1e-4):
     vae = VAE(enc, dec)
     model = VAE_GAN(
         vae, disc,
-        opti1=tf.keras.optimizers.Adam(learning_rate),
-        opti2=tf.keras.optimizers.Adam(learning_rate),
-        opti3=tf.keras.optimizers.Adam(learning_rate),
+        opti1=tf.keras.optimizers.legacy.Adam(learning_rate),
+        opti2=tf.keras.optimizers.legacy.Adam(learning_rate),
+        opti3=tf.keras.optimizers.legacy.Adam(learning_rate),
     )
     model.compile(run_eagerly=False)
     # Build variables before loading TensorFlow checkpoints.
