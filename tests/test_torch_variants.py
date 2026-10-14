@@ -31,3 +31,18 @@ def test_shared_forward_gradients():
     dgrads=torch.autograd.grad(dloss,disc_params,retain_graph=True)
     vgrads=torch.autograd.grad(vae,vae_params)
     assert all(torch.isfinite(g).all() for g in dgrads+vgrads)
+
+
+def test_paper_aligned_checkpoint_is_independent(tmp_path):
+    cfg={"category":"screw","epochs":100,"output_dir":str(tmp_path),
+         "torch_variant":"paper_aligned"}
+    assert checkpoint_path(cfg).name == "screw_VAE_GAN_100_paper_aligned.pt"
+
+
+def test_paper_aligned_decoder_output_shape():
+    model=VAEGAN(4, paper_aligned=True)
+    model.eval()
+    with torch.no_grad():
+        x=model.decoder(torch.zeros(1,4))
+    assert x.shape == (1,3,128,128)
+    assert isinstance(model.decoder.blocks[-2],torch.nn.ConvTranspose2d)
