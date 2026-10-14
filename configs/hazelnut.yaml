@@ -1,7 +1,7 @@
 category: hazelnut
 dataset_root: /Users/rashid/data/DS/AD/MVtec
 image_size: 128
-latent_dim: 64
+latent_dim: 32
 seed: 42
 batch_size: 8
 epochs: 10

@@ -14,7 +14,17 @@ def load_model(cfg, checkpoint=None):
         raise FileNotFoundError(f"Checkpoint prefix does not exist: {checkpoint}")
     # Archived TF checkpoint names may require explicit partial status for
     # optimizer slots; do not hide incompatible model variable assignments.
-    status = model.load_weights(checkpoint)
+    try:
+        status = model.load_weights(checkpoint)
+    except ValueError as exc:
+        if "incompatible tensor with shape" in str(exc):
+            raise ValueError(
+                f"Archived checkpoint is incompatible with the configured model. "
+                f"Check latent_dim={cfg.get('latent_dim')} in your YAML, the "
+                f"selected checkpoint={checkpoint}, and the original model "
+                f"architecture. TensorFlow reported: {exc}"
+            ) from exc
+        raise
     if hasattr(status, "expect_partial"):
         status.expect_partial()
     return model
