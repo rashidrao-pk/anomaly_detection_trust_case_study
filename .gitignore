@@ -12,3 +12,6 @@ outputs/
 .ipynb_checkpoints/
 
 __pycache__
+
+src/anomaly_detection_trust_case_study.egg-info
+src/anomaly_detection_trust_case_study.egg-info/**
