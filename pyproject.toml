@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anomaly-detection-trust-case-study"
+version = "0.2.0"
+description = "Notebook-free VAE-GAN anomaly detection and XAI experiments"
+requires-python = ">=3.9,<3.12"
+dependencies = ["tensorflow==2.15.0", "tensorflow-addons==0.22.0", "numpy==1.26.3", "scikit-learn==1.4.0", "matplotlib==3.8.2", "Pillow>=9.0", "PyYAML>=6.0", "lime", "shap", "pandas==2.2.0", "opencv-python==4.9.0.80", "scikit-image==0.22.0", "scipy==1.12.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]

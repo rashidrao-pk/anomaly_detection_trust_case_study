@@ -1,0 +1,10 @@
+category: hazelnut
+dataset_root: data/mvtec_ad
+image_size: 128
+latent_dim: 64
+seed: 42
+batch_size: 8
+epochs: 10
+learning_rate: 0.0001
+checkpoint: models/hazelnut_VAE_GAN_30000/hazelnut_VAE_GAN_30000_model
+output_dir: outputs/hazelnut
