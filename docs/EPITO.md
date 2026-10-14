@@ -136,3 +136,27 @@ If `venv` fails because `ensurepip` is unavailable, use a user-installed
 Python distribution or ask cluster support instead of attempting privileged
 system installations. TensorFlow Addons is an old optional dependency in the
 current packaging: confirm `pip check` and imports before submitting jobs.
+
+
+## Python interpreter absent on Epito02 (diagnostics)
+
+Do not assume the OS's suggested Python packages are installed. Run:
+
+```bash
+command -v python3; python3 --version
+ls -l /usr/bin/python3* 2>/dev/null
+command -v module || true
+command -v uv || true
+command -v pixi || true
+command -v micromamba || true
+module avail python 2>&1 || true
+module avail anaconda 2>&1 || true
+ls -ld /beegfs/home/mrashid/envs/* 2>/dev/null || true
+```
+
+If a cluster module or existing environment provides Python 3.10 or 3.11,
+use that interpreter to create a venv. Otherwise install a user-space Python
+using an HPC-approved tool such as micromamba/uv/pixi, subject to site policy,
+or ask cluster support. Never use sudo or install system packages on compute
+nodes. Verify GPU access in the Slurm allocation and keep Python 3.12 out of
+the TensorFlow 2.15 environment.
