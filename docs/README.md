@@ -29,3 +29,5 @@ python scripts/explain.py --config configs/screw.yaml --method shap
 - [EfficientAD baseline (issue #2)](EFFICIENTAD.md) — optional environment, training, and open parity checks
 
 - [Epito HPC Slurm training](EPITO.md) — Linux CUDA, BeeGFS, checkpoint jobs
+
+- [Native PyTorch VAE-GAN implementation](PYTORCH.md) — train/evaluate on A100; paper-comparability limits
