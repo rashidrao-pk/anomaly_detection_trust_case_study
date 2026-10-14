@@ -190,3 +190,39 @@ container or HPC-approved module on the target node before submitting Slurm.
 Keep the existing PyTorch environment `pt_312` untouched. Once a suitable
 Python/TensorFlow GPU installation is available, point `CONDA_ENV_PATH` at
 this micromamba environment; the Slurm script uses its `bin/python`.
+
+
+## 2026-10-14: ARM64 binary Exec format error
+
+On epito02, `uname -m` gives `aarch64`, and the existing
+`~/apps/bin/micromamba` fails with `Exec format error`. Inspect the
+executable before replacing it:
+
+```bash
+file ~/apps/bin/micromamba
+file ~/.pixi/bin/pixi
+uname -m
+```
+
+If the binary is x86-64, download Micromamba's Linux ARM64 distribution
+into a **new** directory, without overwriting the existing install:
+
+```bash
+mkdir -p ~/apps/micromamba-arm64 && cd ~/apps/micromamba-arm64
+curl -fLsS https://micro.mamba.pm/api/micromamba/linux-aarch64/latest -o micromamba.tar.bz2
+tar -xjf micromamba.tar.bz2 bin/micromamba
+file bin/micromamba
+~/apps/micromamba-arm64/bin/micromamba create -p /beegfs/home/mrashid/envs/xai-ad -c conda-forge python=3.10 pip -y
+eval "$(~/apps/micromamba-arm64/bin/micromamba shell hook -s bash)"
+micromamba activate /beegfs/home/mrashid/envs/xai-ad
+python --version
+```
+
+This fixes interpreter provisioning only, **not** GPU support. The compute
+node is ARM64, so ordinary TensorFlow 2.15 pip CUDA extras may be unavailable.
+First check `nvidia-smi`, available site container runtimes (`command -v
+apptainer`), and TensorFlow-compatible ARM64/NVIDIA build availability. For
+Grace Hopper / ARM64 clusters, a site-approved NVIDIA TensorFlow container
+may be preferable to rebuilding or attempting incompatible pip wheels.
+Run training only after verifying TensorFlow detects a GPU in the allocated
+compute environment.
