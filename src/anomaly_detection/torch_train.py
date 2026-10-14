@@ -36,8 +36,12 @@ def output_root(cfg):
 
 
 def checkpoint_path(cfg):
+    variant = cfg.get("torch_variant", "initial")
+    if variant not in ("initial", "paper_faithful"):
+        raise ValueError(f"Unknown torch_variant: {variant}")
+    suffix = "" if variant == "initial" else "_paper_faithful"
     return output_root(cfg) / "trained_models" / (
-        f"{cfg['category']}_VAE_GAN_{int(cfg.get('epochs', 10))}.pt")
+        f"{cfg['category']}_VAE_GAN_{int(cfg.get('epochs', 10))}{suffix}.pt")
 
 
 def load_checkpoint(cfg, path, device):
@@ -65,8 +69,12 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
                         shuffle=True, num_workers=num_workers, drop_last=False)
     model = VAEGAN(int(cfg.get("latent_dim", 32))).to(device)
     lr = float(cfg.get("learning_rate", .001))
-    vae_opt = torch.optim.Adam(list(model.encoder.parameters())+list(model.decoder.parameters()),lr=lr)
-    disc_opt = torch.optim.Adam(model.discriminator.parameters(),lr=lr)
+    variant = cfg.get("torch_variant", "initial")
+    if variant not in ("initial", "paper_faithful"):
+        raise ValueError(f"Unknown torch_variant: {variant}")
+    epsilon = 1e-7 if variant == "paper_faithful" else 1e-8
+    vae_opt = torch.optim.Adam(list(model.encoder.parameters())+list(model.decoder.parameters()),lr=lr,eps=epsilon)
+    disc_opt = torch.optim.Adam(model.discriminator.parameters(),lr=lr,eps=epsilon)
     path = checkpoint_path(cfg); path.parent.mkdir(parents=True, exist_ok=True)
     start=0
     history=[]
@@ -76,6 +84,8 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
         disc_opt.load_state_dict(state["disc_optimizer"])
         start = int(state["epoch"])
         history = state.get("history", [])
+        if state.get("torch_variant", "initial") != variant:
+            raise ValueError("Checkpoint training variant differs from requested variant")
     elif path.exists():
         raise FileExistsError(f"Will not overwrite {path}; use --resume or change output_dir/epochs")
     total = int(cfg.get("epochs",10))
@@ -90,25 +100,61 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
             images = images.to(device)
             batch = images.shape[0]
             mean, logvar, recon = model(images)
-            # D step: update only discriminator using *detached* generated image
-            disc_opt.zero_grad(set_to_none=True)
-            rlog = model.discriminator(images)
-            flog = model.discriminator(recon.detach())
-            dloss = nn.functional.binary_cross_entropy_with_logits(
-                torch.cat((rlog,flog)), torch.cat((torch.zeros_like(rlog),torch.ones_like(flog))))
-            dloss.backward()
-            disc_opt.step()
-            # VAE step: freeze discriminator weights; retain gradient to reconstruction.
-            for p in model.discriminator.parameters(): p.requires_grad_(False)
-            vae_opt.zero_grad(set_to_none=True)
-            # Keras computes losses using the *same* forward state. The two
-            # sequential optimizer steps are an approximation, not exact parity.
-            rlog2 = model.discriminator(images)
-            flog2 = model.discriminator(recon)
-            losses = paper_losses(images,recon,mean,logvar,rlog2,flog2)
-            losses["vae_loss"].backward()
-            vae_opt.step()
-            for p in model.discriminator.parameters(): p.requires_grad_(True)
+            if variant == "paper_faithful":
+                # Original models.py computes D and VAE losses from the same
+                # forward parameters, then applies both gradient sets.
+                # Discriminator is called once on a concatenated real/fake batch,
+                # then a second time on generated data as in the TF source.
+                combined_logits = model.discriminator(torch.cat((images, recon), dim=0))
+                real_logits, fake_logits = combined_logits.split(batch, dim=0)
+                extra_fake_logits = model.discriminator(recon)
+                from torch.nn import functional as F
+                target_real = torch.zeros_like(real_logits)
+                target_fake = torch.ones_like(fake_logits)
+                dloss = F.binary_cross_entropy_with_logits(
+                    combined_logits, torch.cat((target_real, target_fake), dim=0))
+                gen_loss = torch.clamp_min(
+                    F.binary_cross_entropy_with_logits(extra_fake_logits, target_real) - dloss,
+                    0.0001)
+                reconstruction = F.binary_cross_entropy(recon, images, reduction="none").mean(dim=1).sum(dim=(1, 2)).mean()
+                kl_loss = (-.5 * (1 + logvar - mean.square() - logvar.exp())).sum(dim=1).mean()
+                vae_loss = reconstruction + kl_loss + gen_loss
+                losses = {"vae_loss": vae_loss, "reconstruction_loss": reconstruction,
+                          "kl_loss": kl_loss, "disc_loss": dloss, "gen_loss": gen_loss}
+                vae_params = list(model.encoder.parameters()) + list(model.decoder.parameters())
+                disc_params = list(model.discriminator.parameters())
+                # Compute BOTH gradient sets before either optimizer step.
+                # autograd.grad returns no graph-owned .grad side effects.
+                dgrads = torch.autograd.grad(dloss, disc_params, retain_graph=True)
+                vgrads = torch.autograd.grad(vae_loss, vae_params)
+                disc_opt.zero_grad(set_to_none=True)
+                vae_opt.zero_grad(set_to_none=True)
+                for p, g in zip(disc_params, dgrads):
+                    p.grad = g
+                for p, g in zip(vae_params, vgrads):
+                    p.grad = g
+                disc_opt.step()
+                vae_opt.step()
+            else:
+                # D step: update only discriminator using *detached* generated image
+                disc_opt.zero_grad(set_to_none=True)
+                rlog = model.discriminator(images)
+                flog = model.discriminator(recon.detach())
+                dloss = nn.functional.binary_cross_entropy_with_logits(
+                    torch.cat((rlog,flog)), torch.cat((torch.zeros_like(rlog),torch.ones_like(flog))))
+                dloss.backward()
+                disc_opt.step()
+                # VAE step: freeze discriminator weights; retain gradient to reconstruction.
+                for p in model.discriminator.parameters(): p.requires_grad_(False)
+                vae_opt.zero_grad(set_to_none=True)
+                # Keras computes losses using the *same* forward state. The two
+                # sequential optimizer steps are an approximation, not exact parity.
+                rlog2 = model.discriminator(images)
+                flog2 = model.discriminator(recon)
+                losses = paper_losses(images,recon,mean,logvar,rlog2,flog2)
+                losses["vae_loss"].backward()
+                vae_opt.step()
+                for p in model.discriminator.parameters(): p.requires_grad_(True)
             for key in sums: sums[key] += float(losses[key].detach()) * batch
             count += batch
         row={"epoch":epoch+1,"seconds":round(time.perf_counter()-t0,2)}
@@ -128,7 +174,7 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
                    "model":model.state_dict(),"vae_optimizer":vae_opt.state_dict(),
                    "disc_optimizer":disc_opt.state_dict(),"history":history,
                    "category":cfg["category"],"image_size":128,
-                   "seed":seed,"training_profile":mode}
+                   "seed":seed,"training_profile":mode,"torch_variant":variant}
             tmp=path.with_suffix(".pt.tmp")
             torch.save(state,tmp)
             tmp.replace(path)

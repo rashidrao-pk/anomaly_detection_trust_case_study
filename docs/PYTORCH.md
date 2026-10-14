@@ -140,3 +140,51 @@ themselves establish faithful paper reproduction.
 Pulling this logging change does **not** change the output of an already
 running Python process. Stop/restart or resume from a checkpoint to use the
 new logging. Keep the current checkpoints intact.
+
+## Three-model paper comparability experiment (October 2026)
+
+1. **Original TensorFlow**: evaluate the archived `.index` checkpoint using
+   the original/refactored TF evaluator with exactly the same dataset root,
+   masks, resolution and scoring. Its previously reported Screw refactor
+   AUROCs (~0.9248 image / ~0.9403 pixel) are historical, not remeasured.
+2. **Initial PyTorch**: existing `..._30000.pt` training with sequential
+   discriminator-first update. This checkpoint is preserved and remains
+   the default `--variant initial`. Its early discriminator loss was
+   approximately 4e-7 at epoch 23; evaluate rather than presuming failure.
+3. **Paper-faithful PyTorch**: new `--variant paper_faithful`. It computes
+   discriminator and VAE gradients from one parameter state and applies
+   them only after both have been computed, matching the ordering in
+   repo-root `models.py`. It also uses Adam epsilon 1e-7 (Keras legacy
+   default). The original Keras discriminator is called on a combined
+   real/reconstruction batch and again on reconstructed images; both calls
+   are mirrored here. Checkpoint suffix: `_paper_faithful.pt`.
+
+Important: the corrected implementation is *more faithful to the original
+optimization ordering*, **not proven numerically equivalent**. Framework
+initialization, BatchNorm execution, generator data augmentation, RNG,
+optimizer details and preprocessing still differ. It uses the same
+inverted real/fake label convention as the published code, intentionally.
+
+From the existing Epito PyTorch venv:
+
+```bash
+git pull --ff-only origin main
+# Ensure configs/screw_epito.yaml points to the correct MVTec path
+# Train a small corrected run (separate checkpoint filename):
+python scripts/train_torch.py --config configs/screw_epito.yaml \
+  --variant paper_faithful --epochs 100 --device cuda --num-workers 4
+# Or evaluate an existing initial checkpoint:
+python scripts/evaluate_torch.py --config configs/screw_epito.yaml \
+  --checkpoint outputs/screw_epito/pytorch/trained_models/screw_VAE_GAN_30000.pt --device cuda
+# Compare from the separately exported metrics.json files:
+python scripts/compare_three_models.py \
+  --tensorflow outputs/reference_tf/metrics.json \
+  --initial outputs/initial_torch/metrics.json \
+  --corrected outputs/corrected_torch/metrics.json \
+  --output outputs/three_way
+```
+
+The comparison script requires **actual evaluation JSONs**, does not
+fabricate missing metrics, and records paths. To avoid output collisions,
+copy/rename each evaluation JSON immediately after each run. Do not
+change the active training process to load new code without restarting.
