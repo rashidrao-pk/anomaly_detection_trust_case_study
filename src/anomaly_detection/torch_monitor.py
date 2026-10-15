@@ -133,59 +133,95 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import numpy as np
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    nrows = len(samples)
-    ncols = 4
-    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 3.1 * nrows), squeeze=False)
+    if len(samples) != 4:
+        raise ValueError(
+            f"Expected exactly 4 monitor samples (2 normal + 2 anomaly), got {len(samples)}"
+        )
 
-    headers = ["Input", "Reconstruction", "Anomaly map", "GT mask"]
-    for c, title in enumerate(headers):
-        axes[0, c].set_title(title, fontsize=14)
+    # Expected order from choose_pair:
+    # [normal1, normal2, anomaly1, anomaly2]
+    normal_samples = samples[:2]
+    anomaly_samples = samples[2:]
+    grouped = [("Normal train", normal_samples), ("Anomalous test", anomaly_samples)]
+
+    # Layout:
+    # 2 rows total
+    # each row has 2 samples
+    # each sample has 3 panels: Input(+GT), Reconstruction, Anomaly map
+    nrows = 2
+    ncols = 6
+
+    fig, axes = plt.subplots(
+        nrows=nrows,
+        ncols=ncols,
+        figsize=(18, 8),
+        squeeze=False
+    )
 
     model.eval()
 
-    for r, (name, image_path, mask_path, split) in enumerate(samples):
-        image_np = _load_rgb(Path(image_path), image_size=image_size)
-        x = torch.from_numpy(image_np).permute(2, 0, 1).unsqueeze(0).to(device)
+    for row_idx, (row_name, row_samples) in enumerate(grouped):
+        for sample_idx, (name, image_path, mask_path, split) in enumerate(row_samples):
+            col0 = sample_idx * 3
 
-        recon = model.reconstruct(x).clamp(0, 1)
-        recon_np = recon[0].permute(1, 2, 0).cpu().numpy()
+            image_np = _load_rgb(Path(image_path), image_size=image_size)
+            x = torch.from_numpy(image_np).permute(2, 0, 1).unsqueeze(0).to(device)
 
-        anomaly_map = (x - recon).abs().mean(dim=1)[0].cpu().numpy()
-        gt_mask = _load_mask(mask_path, image_size=image_size)
+            recon = model.reconstruct(x).clamp(0, 1)
+            recon_np = recon[0].permute(1, 2, 0).cpu().numpy()
 
-        # Input
-        axes[r, 0].imshow(image_np, cmap="gray")
-        axes[r, 0].axis("off")
+            anomaly_map = (x - recon).abs().mean(dim=1)[0].cpu().numpy()
+            gt_mask = _load_mask(mask_path, image_size=image_size)
 
-        # Reconstruction
-        axes[r, 1].imshow(recon_np, cmap="gray")
-        axes[r, 1].axis("off")
+            # Convert to grayscale for display
+            input_gray = image_np.mean(axis=2)
+            recon_gray = recon_np.mean(axis=2)
 
-        # Anomaly map (paper-style colormap: Reds)
-        axes[r, 2].imshow(anomaly_map, cmap="Reds")
-        axes[r, 2].axis("off")
+            # -------- Input + GT overlay --------
+            ax = axes[row_idx, col0]
+            ax.imshow(input_gray, cmap="gray", vmin=0, vmax=1)
 
-        # GT mask
-        axes[r, 3].imshow(gt_mask, cmap="gray", vmin=0, vmax=1)
-        axes[r, 3].axis("off")
+            # Overlay GT mask only if present
+            if gt_mask.sum() > 0:
+                masked = np.ma.masked_where(gt_mask <= 0, gt_mask)
+                ax.imshow(masked, cmap="Blues", alpha=0.35, vmin=0, vmax=1)
+                ax.contour(gt_mask, levels=[0.5], colors="cyan", linewidths=1.2)
 
-        # Row label
-        axes[r, 0].text(
-            -0.12,
+            ax.set_title(f"{name}\nInput + GT", fontsize=12)
+            ax.axis("off")
+
+            # -------- Reconstruction --------
+            ax = axes[row_idx, col0 + 1]
+            ax.imshow(recon_gray, cmap="gray", vmin=0, vmax=1)
+            ax.set_title("Reconstruction", fontsize=12)
+            ax.axis("off")
+
+            # -------- Anomaly map --------
+            ax = axes[row_idx, col0 + 2]
+            ax.imshow(anomaly_map, cmap="Reds")
+            ax.set_title("Anomaly map", fontsize=12)
+            ax.axis("off")
+
+        # Row label on the left
+        axes[row_idx, 0].text(
+            -0.32,
             0.5,
-            name,
-            transform=axes[r, 0].transAxes,
+            row_name,
+            transform=axes[row_idx, 0].transAxes,
             ha="right",
             va="center",
-            fontsize=10,
+            fontsize=14,
+            fontweight="bold",
+            rotation=90,
         )
 
-    fig.suptitle(f"Monitoring samples — epoch {epoch}", fontsize=16)
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.suptitle(f"Monitoring samples — epoch {epoch}", fontsize=18)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
 
     save_path = output_dir / f"epoch_{epoch:06d}.png"
     fig.savefig(save_path, dpi=200, bbox_inches="tight")
