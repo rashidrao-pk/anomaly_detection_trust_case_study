@@ -1,3 +1,4 @@
+__pycache__/**
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
@@ -17,3 +18,4 @@ src/anomaly_detection_trust_case_study.egg-info
 src/anomaly_detection_trust_case_study.egg-info/**
 
 .ipynb_checkpoints/**
+
