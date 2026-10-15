@@ -320,3 +320,28 @@ epoch; the current epoch remains visible in each plot title. This avoids
 accumulating epoch-numbered copies. Existing historical `*_epoch_*.png`
 and `*_epoch_*.pdf` files, if any, are not automatically deleted. Remove
 them manually after confirming the new rolling plots are being created.
+
+
+## Diagnose low reconstruction quality before retraining
+
+Read-only checkpoint investigation: `scripts/diagnose_torch.py` compares
+posterior-mean and sampled latent RGB MAE on a fixed seeded subset of
+unaugmented training images and on the entire test set. It reports image
+AUROC from mean, maximum, top 1% and top 5% pixel reconstruction errors.
+This is **exploratory test-set analysis only**: do not choose a final method,
+hyperparameters or checkpoint by maximizing these test metrics. Keep the
+original evaluator's max-score AUROC as the predeclared baseline.
+
+```bash
+python scripts/diagnose_torch.py \\
+  --config configs/screw_epito.yaml \\
+  --checkpoint outputs/screw/pytorch/trained_models/screw_VAE_GAN_30000_paper_aligned.pt \\
+  --device cuda --train-samples 32 --sampled-draws 3
+```
+
+Read `<output_dir>/pytorch/diagnostics/paper_aligned/summary.json` and
+`per_image_scores.csv`. The script does not update the model checkpoint.
+For a first augmentation-isolation experiment, train a new `paper_aligned`
+model with `--no-augmentation` and a **different output_dir**; do not
+resume an augmented checkpoint with this flag. Compare a held-out normal
+validation set before selecting changes for a final experiment.
