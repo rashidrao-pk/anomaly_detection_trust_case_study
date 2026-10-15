@@ -103,7 +103,11 @@ def fit(cfg, *, device_name="auto", resume=False, num_workers=0, save_every=1,
         monitor_dir = output_root(cfg) / "monitor" / variant
         monitor_pair = choose_pair(ds.paths, root, cfg["category"], seed)
         write_pair_metadata(monitor_pair, monitor_dir)
-        print(f"[MONITOR] every={monitor_every_k} epochs | normal={monitor_pair[0][0]} | anomaly={monitor_pair[1][0]} | output={monitor_dir}", flush=True)
+        sample_names = ", ".join(item[0] for item in monitor_pair)
+        print(
+            f"[MONITOR] every={monitor_every_k} epochs | samples={sample_names} | output={monitor_dir}",
+            flush=True,
+        )
     if save_tplots_k:
         print(f"[TPLOTS] every={save_tplots_k} epochs | output={output_root(cfg) / 'training_plots' / variant}", flush=True)
     total = int(cfg.get("epochs",10))

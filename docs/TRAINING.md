@@ -25,7 +25,7 @@ The trainer saves five TensorFlow checkpoint components with suffixes `_model`, 
 python scripts/train.py --config configs/screw.yaml --resume --resume-epochs 50
 ```
 
-The CLI reads the existing CSV to determine the initial epoch and restores the saved model components. `--resume-epochs` means *additional* epochs. It overwrites checkpoints in that run's prefix; copy the run beforehand if intermediate results must be retained. Full optimizer state and random state restoration have not been established: this is a weight-based resume, not guaranteed bitwise-continuous training.
+The CLI reads the existing CSV to determine the initial epoch and restores the saved model components. `--resume-epochs` means _additional_ epochs. It overwrites checkpoints in that run's prefix; copy the run beforehand if intermediate results must be retained. Full optimizer state and random state restoration have not been established: this is a weight-based resume, not guaranteed bitwise-continuous training.
 
 Starting training without `--resume` with the same config can overwrite the prior 10-epoch run. Use a separate YAML/output directory for independent experiments.
 

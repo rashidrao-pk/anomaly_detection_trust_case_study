@@ -1,69 +1,193 @@
-"""Periodic fixed-pair reconstructions for qualitative training diagnostics.
+"""Monitoring utilities for PyTorch VAE-GAN training."""
 
-Uses separate seeded RNG and unaugmented images, so it does not consume the
-training sampler's random stream. Produces PNG grids and pair metadata.
-"""
+from __future__ import annotations
+
 import json
 import random
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
 import torch
-from torchvision.transforms import functional as TF
-
-from .data import evaluation_samples
+from PIL import Image
 
 
-def choose_pair(training_paths, dataset_root, category, seed):
-    normal = [Path(p) for p in training_paths]
-    anomalous = [(Path(path), Path(mask) if mask else None)
-                 for path, label, mask in evaluation_samples(dataset_root, category)
-                 if int(label) == 1]
-    if not normal or not anomalous:
-        raise ValueError("Monitor requires both normal training images and anomalous test images")
-    rng = random.Random(seed + 99173)
-    return [(normal[rng.randrange(len(normal))], None, "normal_train"),
-            (*anomalous[rng.randrange(len(anomalous))], "anomalous_test")]
-
-
-def write_pair_metadata(pair, output_dir):
-    output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "examples.json").write_text(json.dumps(
-        [{"split": split, "image": str(path), "mask": str(mask) if mask else None}
-         for path, mask, split in pair], indent=2))
-
-
-@torch.no_grad()
-def save_monitor_image(model, pair, epoch, device, output_dir, image_size=128):
-    previous_mode = model.training
-    model.eval()
+def _short_index(stem: str) -> str:
     try:
-        canvas = Image.new("RGB", (image_size * 4, image_size * 2 + 54), "white")
-        draw = ImageDraw.Draw(canvas)
-        for idx, (path, mask_path, label) in enumerate(pair):
-            with Image.open(path) as img:
-                input_img = img.convert("RGB").resize(
-                    (image_size, image_size), Image.Resampling.BILINEAR)
-            tensor = TF.to_tensor(input_img).unsqueeze(0).to(device)
-            pred = model.reconstruct(tensor).clamp(0, 1)[0].cpu()
-            reconstructed = TF.to_pil_image(pred)
-            err = (tensor[0].cpu() - pred).abs().mean(0).numpy()
-            # Fixed scale [0,1] for cross-epoch visual comparability.
-            heat = np.uint8(np.clip(err, 0, 1) * 255)
-            error_img = Image.fromarray(heat, mode="L").convert("RGB")
-            if mask_path is not None and mask_path.exists():
-                with Image.open(mask_path) as m:
-                    mask = m.convert("L").resize((image_size, image_size), Image.Resampling.NEAREST)
-                mask_img = Image.fromarray(
-                    (np.asarray(mask) > 0).astype(np.uint8) * 255, mode="L").convert("RGB")
-            else:
-                mask_img = Image.new("RGB", (image_size, image_size), "black")
-            y = 25 + idx * (image_size + 2)
-            for j, image in enumerate((input_img, reconstructed, error_img, mask_img)):
-                canvas.paste(image, (j * image_size, y))
-            draw.text((4, y - 18), label, fill="black")
-        canvas.save(output_dir / f"epoch_{epoch:06d}.png")
-        return output_dir / f"epoch_{epoch:06d}.png"
-    finally:
-        model.train(previous_mode)
+        return str(int(stem))
+    except ValueError:
+        return stem
+
+
+def _sample_name(path: Path, split: str) -> str:
+    if split == "train_normal":
+        return f"normal_{_short_index(path.stem)}"
+    defect = path.parent.name
+    return f"{defect}_{_short_index(path.stem)}"
+
+
+def _mask_path_for(root: Path, category: str, image_path: Path) -> Path | None:
+    defect = image_path.parent.name
+    if defect == "good":
+        return None
+    mask = root / category / "ground_truth" / defect / f"{image_path.stem}_mask.png"
+    return mask if mask.exists() else None
+
+
+def _load_rgb(path: Path, image_size: int = 128) -> np.ndarray:
+    with Image.open(path) as image:
+        image = image.convert("RGB").resize((image_size, image_size), Image.Resampling.BILINEAR)
+        arr = np.asarray(image, dtype=np.float32) / 255.0
+    return arr
+
+
+def _load_mask(path: Path | None, image_size: int = 128) -> np.ndarray:
+    if path is None or not Path(path).exists():
+        return np.zeros((image_size, image_size), dtype=np.float32)
+    with Image.open(path) as image:
+        image = image.convert("L").resize((image_size, image_size), Image.Resampling.NEAREST)
+        arr = np.asarray(image, dtype=np.float32)
+    return (arr > 127).astype(np.float32)
+
+
+def choose_pair(train_paths, root, category, seed=42, n_normal=2, n_anomaly=2):
+    """
+    Returns a list of monitoring samples:
+      [(name, image_path, mask_path, split), ...]
+    with:
+      - 2 normal train samples
+      - 2 anomalous test samples (preferably from different anomaly folders)
+    """
+    rng = random.Random(seed)
+    root = Path(root)
+
+    # ---------- normal training samples ----------
+    train_paths = sorted(Path(p) for p in train_paths)
+    if len(train_paths) < n_normal:
+        raise ValueError(f"Need at least {n_normal} train/good samples, found {len(train_paths)}")
+    chosen_normals = rng.sample(train_paths, n_normal)
+
+    samples = []
+    for p in chosen_normals:
+        samples.append((_sample_name(p, "train_normal"), p, None, "train_normal"))
+
+    # ---------- anomalous test samples ----------
+    test_root = root / category / "test"
+    anomalies_by_type = defaultdict(list)
+
+    for defect_dir in sorted(test_root.iterdir()):
+        if not defect_dir.is_dir():
+            continue
+        if defect_dir.name == "good":
+            continue
+        for p in sorted(defect_dir.glob("*.png")):
+            anomalies_by_type[defect_dir.name].append(p)
+
+    if not anomalies_by_type:
+        raise ValueError(f"No anomalous test images found under {test_root}")
+
+    # Prefer different anomaly folders/types
+    defect_types = list(anomalies_by_type.keys())
+    rng.shuffle(defect_types)
+
+    chosen_anomalies = []
+    for defect in defect_types:
+        if len(chosen_anomalies) >= n_anomaly:
+            break
+        chosen_anomalies.append(rng.choice(anomalies_by_type[defect]))
+
+    # If still short, fill from remaining anomaly images
+    if len(chosen_anomalies) < n_anomaly:
+        all_anomalies = []
+        for defect, items in anomalies_by_type.items():
+            all_anomalies.extend(items)
+        remaining = [p for p in all_anomalies if p not in chosen_anomalies]
+        need = n_anomaly - len(chosen_anomalies)
+        if len(remaining) < need:
+            raise ValueError(f"Not enough anomalous samples to choose {n_anomaly}")
+        chosen_anomalies.extend(rng.sample(remaining, need))
+
+    for p in chosen_anomalies:
+        samples.append((_sample_name(p, "anomalous_test"), p, _mask_path_for(root, category, p), "anomalous_test"))
+
+    return samples
+
+
+def write_pair_metadata(samples, output_dir):
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    payload = [
+        {
+            "name": name,
+            "image": str(image_path),
+            "mask": None if mask_path is None else str(mask_path),
+            "split": split,
+        }
+        for name, image_path, mask_path, split in samples
+    ]
+    (output_dir / "monitor_samples.json").write_text(json.dumps(payload, indent=2))
+
+
+@torch.inference_mode()
+def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    nrows = len(samples)
+    ncols = 4
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 3.1 * nrows), squeeze=False)
+
+    headers = ["Input", "Reconstruction", "Anomaly map", "GT mask"]
+    for c, title in enumerate(headers):
+        axes[0, c].set_title(title, fontsize=14)
+
+    model.eval()
+
+    for r, (name, image_path, mask_path, split) in enumerate(samples):
+        image_np = _load_rgb(Path(image_path), image_size=image_size)
+        x = torch.from_numpy(image_np).permute(2, 0, 1).unsqueeze(0).to(device)
+
+        recon = model.reconstruct(x).clamp(0, 1)
+        recon_np = recon[0].permute(1, 2, 0).cpu().numpy()
+
+        anomaly_map = (x - recon).abs().mean(dim=1)[0].cpu().numpy()
+        gt_mask = _load_mask(mask_path, image_size=image_size)
+
+        # Input
+        axes[r, 0].imshow(image_np, cmap="gray")
+        axes[r, 0].axis("off")
+
+        # Reconstruction
+        axes[r, 1].imshow(recon_np, cmap="gray")
+        axes[r, 1].axis("off")
+
+        # Anomaly map (paper-style colormap: Reds)
+        axes[r, 2].imshow(anomaly_map, cmap="Reds")
+        axes[r, 2].axis("off")
+
+        # GT mask
+        axes[r, 3].imshow(gt_mask, cmap="gray", vmin=0, vmax=1)
+        axes[r, 3].axis("off")
+
+        # Row label
+        axes[r, 0].text(
+            -0.12,
+            0.5,
+            name,
+            transform=axes[r, 0].transAxes,
+            ha="right",
+            va="center",
+            fontsize=10,
+        )
+
+    fig.suptitle(f"Monitoring samples — epoch {epoch}", fontsize=16)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+
+    save_path = output_dir / f"epoch_{epoch:06d}.png"
+    fig.savefig(save_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return save_path
