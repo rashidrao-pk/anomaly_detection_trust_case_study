@@ -20,7 +20,7 @@ def _short_index(stem: str) -> str:
 
 
 def _sample_name(path: Path, split: str) -> str:
-    if split == "train_normal":
+    if split in ("train_normal", "test_normal"):
         return f"normal_{_short_index(path.stem)}"
     defect = path.parent.name
     return f"{defect}_{_short_index(path.stem)}"
@@ -55,21 +55,26 @@ def choose_pair(train_paths, root, category, seed=42, n_normal=2, n_anomaly=2):
     Returns a list of monitoring samples:
       [(name, image_path, mask_path, split), ...]
     with:
-      - 2 normal train samples
+      - 1 normal train sample and 1 normal test sample
       - 2 anomalous test samples (preferably from different anomaly folders)
     """
     rng = random.Random(seed)
     root = Path(root)
+    if n_normal != 2:
+        raise ValueError("Monitoring requires 2 normal samples: one train and one test")
 
     # ---------- normal training samples ----------
     train_paths = sorted(Path(p) for p in train_paths)
-    if len(train_paths) < n_normal:
-        raise ValueError(f"Need at least {n_normal} train/good samples, found {len(train_paths)}")
-    chosen_normals = rng.sample(train_paths, n_normal)
+    if not train_paths:
+        raise ValueError("Need at least one train/good sample")
+    test_normals = sorted((root / category / "test" / "good").glob("*.png"))
+    if not test_normals:
+        raise ValueError(f"No normal test images found under {root / category / 'test' / 'good'}")
 
     samples = []
-    for p in chosen_normals:
-        samples.append((_sample_name(p, "train_normal"), p, None, "train_normal"))
+    for split, paths in (("train_normal", train_paths), ("test_normal", test_normals)):
+        p = rng.choice(paths)
+        samples.append((_sample_name(p, split), p, None, split))
 
     # ---------- anomalous test samples ----------
     test_root = root / category / "test"
@@ -144,10 +149,12 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
         )
 
     # Expected order from choose_pair:
-    # [normal1, normal2, anomaly1, anomaly2]
+    # [train_normal, test_normal, anomaly1, anomaly2]
     normal_samples = samples[:2]
     anomaly_samples = samples[2:]
-    grouped = [("Normal train", normal_samples), ("Anomalous test", anomaly_samples)]
+    grouped = [("Normal", normal_samples), ("Anomalous test", anomaly_samples)]
+    split_labels = {"train_normal": "Normal train", "test_normal": "Normal test",
+                    "anomalous_test": "Anomalous test"}
 
     # Layout:
     # 2 rows total
@@ -194,7 +201,7 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
                 ax.imshow(masked, cmap="Blues", alpha=0.35, vmin=0, vmax=1)
                 ax.contour(gt_mask, levels=[0.5], colors="cyan", linewidths=1.2)
 
-            ax.set_title(f"{name}\nInput + GT", fontsize=12)
+            ax.set_title(f"{split_labels[split]} — {name}\nInput + GT", fontsize=12)
             ax.axis("off")
 
             # -------- Reconstruction --------
@@ -210,7 +217,7 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
             ax.set_title("Anomaly map", fontsize=12)
             ax.axis("off")
 
-        # Row label on the left
+        # Row label on the l    eft
         axes[row_idx, 0].text(
             -0.32,
             0.5,
