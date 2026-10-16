@@ -179,12 +179,14 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
             gt_mask = _load_mask(mask_path, image_size=image_size)
 
             # Convert to grayscale for display
-            input_gray = image_np.mean(axis=2)
-            recon_gray = recon_np.mean(axis=2)
+            # input_gray = image_np.mean(axis=2)
+            # recon_gray = recon_np.mean(axis=2)
+            
 
             # -------- Input + GT overlay --------
             ax = axes[row_idx, col0]
-            ax.imshow(input_gray, cmap="gray", vmin=0, vmax=1)
+            # ax.imshow(input_gray, cmap="gray", vmin=0, vmax=1)
+            ax.imshow(image_np)  # Input panel
 
             # Overlay GT mask only if present
             if gt_mask.sum() > 0:
@@ -197,7 +199,8 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
 
             # -------- Reconstruction --------
             ax = axes[row_idx, col0 + 1]
-            ax.imshow(recon_gray, cmap="gray", vmin=0, vmax=1)
+            # ax.imshow(recon_gray, cmap="gray", vmin=0, vmax=1)
+            ax.imshow(recon_np)  # Reconstruction panel
             ax.set_title("Reconstruction", fontsize=12)
             ax.axis("off")
 
