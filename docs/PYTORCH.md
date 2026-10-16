@@ -345,3 +345,22 @@ For a first augmentation-isolation experiment, train a new `paper_aligned`
 model with `--no-augmentation` and a **different output_dir**; do not
 resume an augmented checkpoint with this flag. Compare a held-out normal
 validation set before selecting changes for a final experiment.
+
+
+### Monitor image / ground-truth validation
+
+Monitoring sample selection reuses the exact `evaluation_samples` manifest
+from the evaluation pipeline. For each sampled image the monitor validates
+its split and full path: train normal must be under `train/good`, test normal
+under `test/good`, and anomalous samples under `test/<defect>`. The
+anomalous GT must exist at `ground_truth/<defect>/<stem>_mask.png`,
+have the same native dimensions as the input, and contain positive pixels.
+The two selected anomalies come from distinct defect directories. The
+monitor's `monitor_samples.json` records absolute input and mask paths;
+plot titles include the actual dataset-relative source folder and filename.
+Thus a sample named `thread_top_21` can be checked against
+`test/thread_top/021.png` and `ground_truth/thread_top/021_mask.png`.
+A dataset folder label is **not** evidence of where in the screw an anomaly
+must be visible. Sample names are drawn from directory structure, not an
+independent visual classifier. These checks do not validate correctness of
+the original MVTec annotations themselves.

@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
+from .data import evaluation_samples
 
 
 def _short_index(stem: str) -> str:
@@ -26,12 +27,38 @@ def _sample_name(path: Path, split: str) -> str:
     return f"{defect}_{_short_index(path.stem)}"
 
 
-def _mask_path_for(root: Path, category: str, image_path: Path) -> Path | None:
-    defect = image_path.parent.name
-    if defect == "good":
-        return None
-    mask = root / category / "ground_truth" / defect / f"{image_path.stem}_mask.png"
-    return mask if mask.exists() else None
+def validate_monitor_sample(image_path, mask_path, split, root, category):
+    """Reject incorrect split/category or missing/misaligned anomaly masks."""
+    root = Path(root).resolve()
+    path = Path(image_path).resolve()
+    base = (root / category).resolve()
+    if split == "train_normal":
+        expected = base / "train" / "good"
+    elif split == "test_normal":
+        expected = base / "test" / "good"
+    elif split == "anomalous_test":
+        expected = base / "test" / path.parent.name
+        if path.parent.name == "good":
+            raise ValueError(f"Anomalous sample cannot come from test/good: {path}")
+    else:
+        raise ValueError(f"Unrecognized monitor split: {split}")
+    if path.parent != expected or not path.is_file():
+        raise ValueError(f"Monitor image not in {expected}: {path}")
+
+    if split != "anomalous_test":
+        if mask_path is not None:
+            raise ValueError(f"Normal image must not carry a GT mask: {path}")
+        return
+
+    expected_mask = base / "ground_truth" / path.parent.name / f"{path.stem}_mask.png"
+    if mask_path is None or Path(mask_path).resolve() != expected_mask or not expected_mask.is_file():
+        raise FileNotFoundError(f"Expected GT mask for {path}: {expected_mask}")
+    with Image.open(path) as img, Image.open(expected_mask) as mask:
+        if img.size != mask.size:
+            raise ValueError(f"Image/mask shape mismatch: {path} {img.size} vs {expected_mask} {mask.size}")
+        if not np.any(np.asarray(mask.convert("L")) > 0):
+            raise ValueError(f"Empty GT mask for anomalous sample: {expected_mask}")
+
 
 
 def _load_rgb(path: Path, image_size: int = 128) -> np.ndarray:
@@ -77,43 +104,28 @@ def choose_pair(train_paths, root, category, seed=42, n_normal=2, n_anomaly=2):
         samples.append((_sample_name(p, split), p, None, split))
 
     # ---------- anomalous test samples ----------
-    test_root = root / category / "test"
+    # Use the same canonical dataset manifest as the evaluation pipeline.
+    # This prevents independent monitor/evaluator sample enumeration from
+    # silently disagreeing about defect labels or mask filenames.
     anomalies_by_type = defaultdict(list)
+    for image_path, label, mask_path in evaluation_samples(root, category):
+        if label:
+            anomalies_by_type[Path(image_path).parent.name].append(
+                (Path(image_path), Path(mask_path)))
 
-    for defect_dir in sorted(test_root.iterdir()):
-        if not defect_dir.is_dir():
-            continue
-        if defect_dir.name == "good":
-            continue
-        for p in sorted(defect_dir.glob("*.png")):
-            anomalies_by_type[defect_dir.name].append(p)
+    if len(anomalies_by_type) < 2 and n_anomaly > 1:
+        raise ValueError("Need at least two anomaly categories for distinct monitoring examples")
+    rng_types = sorted(anomalies_by_type)
+    rng.shuffle(rng_types)
+    chosen = [rng.choice(anomalies_by_type[kind]) for kind in rng_types[:n_anomaly]]
+    if len(chosen) < n_anomaly:
+        raise ValueError(f"Need {n_anomaly} distinct anomalous categories, found {len(chosen)}")
+    for image_path, mask_path in chosen:
+        samples.append((_sample_name(image_path, "anomalous_test"),
+                        image_path, mask_path, "anomalous_test"))
 
-    if not anomalies_by_type:
-        raise ValueError(f"No anomalous test images found under {test_root}")
-
-    # Prefer different anomaly folders/types
-    defect_types = list(anomalies_by_type.keys())
-    rng.shuffle(defect_types)
-
-    chosen_anomalies = []
-    for defect in defect_types:
-        if len(chosen_anomalies) >= n_anomaly:
-            break
-        chosen_anomalies.append(rng.choice(anomalies_by_type[defect]))
-
-    # If still short, fill from remaining anomaly images
-    if len(chosen_anomalies) < n_anomaly:
-        all_anomalies = []
-        for defect, items in anomalies_by_type.items():
-            all_anomalies.extend(items)
-        remaining = [p for p in all_anomalies if p not in chosen_anomalies]
-        need = n_anomaly - len(chosen_anomalies)
-        if len(remaining) < need:
-            raise ValueError(f"Not enough anomalous samples to choose {n_anomaly}")
-        chosen_anomalies.extend(rng.sample(remaining, need))
-
-    for p in chosen_anomalies:
-        samples.append((_sample_name(p, "anomalous_test"), p, _mask_path_for(root, category, p), "anomalous_test"))
+    for _name, image_path, mask_path, split in samples:
+        validate_monitor_sample(image_path, mask_path, split, root, category)
 
     return samples
 
@@ -124,6 +136,7 @@ def write_pair_metadata(samples, output_dir):
     payload = [
         {
             "name": name,
+        "defect_category": (Path(image_path).parent.name if split == "anomalous_test" else "good"),
             "image": str(image_path),
             "mask": None if mask_path is None else str(mask_path),
             "split": split,
@@ -201,7 +214,7 @@ def save_monitor_image(model, samples, epoch, device, output_dir, image_size=128
                 ax.imshow(masked, cmap="Blues", alpha=0.35, vmin=0, vmax=1)
                 ax.contour(gt_mask, levels=[0.5], colors="cyan", linewidths=1.2)
 
-            ax.set_title(f"{split_labels[split]} — {name}\nInput + GT", fontsize=12)
+            source = Path(image_path)\n            ax.set_title(f"{split_labels[split]} — {name}\\n{source.parent.parent.name}/{source.parent.name}/{source.name}\\nInput + GT", fontsize=10)
             ax.axis("off")
 
             # -------- Reconstruction --------
