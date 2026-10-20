@@ -100,3 +100,41 @@ and `explanation.image_index` select the test image by its sorted filename;
 `checkpoint` files are used for evaluation via their parent folder.
 The `checkpoint` YAML field ends in `_model` while evaluation restores
 encoder and decoder component weights from the same folder.
+
+## Explain every test image (batch mode)
+
+The following processes *all* MVTec test images, across good and every anomaly
+category, using the dataset path from your Mac config:
+
+```bash
+python scripts/explain.py --config configs/screw.yaml --all --method residual
+python scripts/explain.py --config configs/screw.yaml --all --method lime \
+  --num-samples 100 --skip-existing
+```
+
+On Epito use `configs/screw_epito.yaml`; for Hazelnut choose the
+corresponding `hazelnut*.yaml`. To test on just five images:
+
+```bash
+python scripts/explain.py --config configs/screw.yaml --all --limit 5 --method lime
+```
+
+To explain only one defect category (including `good`):
+
+```bash
+python scripts/explain.py --config configs/screw.yaml --all \
+  --anomaly-type scratch_head --method lime
+```
+
+Batch figures are grouped at `<output_dir>/batch/<category>/<defect>/<stem>_<method>.png`
+and a `manifest_<method>.csv` includes input path, label, defect, PNG, and
+residual score. Each defect folder is separate, so repeated filenames across
+categories never overwrite one another. `--skip-existing` avoids recomputing
+already generated figures. For an interrupted run, the manifest is regenerated
+from the current run and marks skipped files.
+
+LIME can be slow across the whole test split: first use `--limit`.
+The plotted residual map is a reconstruction discrepancy, not a calibrated
+probability. LIME targets the legacy reconstruction-MSE surrogate; it should
+not be represented as an experimentally validated explanation without a
+faithfulness/GT localization study. No test labels are used for training.
