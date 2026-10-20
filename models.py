@@ -6,7 +6,6 @@
 ###  Please Cite us if you use this code
 ###  thanks
 ###############################################################################################
-import utils as ut
 import tensorflow.keras
 from tensorflow.keras import backend as K
 import tensorflow as tf

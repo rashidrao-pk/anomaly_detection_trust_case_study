@@ -12,7 +12,6 @@ logging.getLogger("tensorflow").setLevel(logging.ERROR)
 import tensorflow as tf
 import tensorflow.keras
 import subprocess as sp
-import tensorflow_addons as tfa
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA 
 from tensorflow.keras import backend as K
@@ -190,12 +189,15 @@ class Data():
         return os.path.abspath(train_dir),os.path.abspath(gtruth_dir),os.path.abspath(test_dir)
 
     def trans1(img):
+        import tensorflow_addons as tfa  # Only legacy Data.trans* calls require Addons
         return tfa.image.rotate(tf.image.flip_left_right(tf.image.flip_up_down(img)),-.2,fill_mode="reflect",interpolation="bilinear")
 
     def trans2(img):
+        import tensorflow_addons as tfa  # Only legacy Data.trans* calls require Addons
         return tfa.image.rotate(img,-.2,fill_mode="reflect",interpolation="bilinear")
 
     def trans3(img):
+        import tensorflow_addons as tfa  # Only legacy Data.trans* calls require Addons
         return tfa.image.rotate(img,.2,fill_mode="reflect",interpolation="bilinear")
     
     def load_data_normal(DS_path=None,DS_name='screw',prefetch=False,augment=True,image_size = [128, 128], batch_size= None):
