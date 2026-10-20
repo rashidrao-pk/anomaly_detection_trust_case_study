@@ -61,7 +61,7 @@ def apply_config(args, parser, mode):
         if args.checkpoint_epochs is None:
             # Historical weights can be 30000 epochs even when YAML epochs: 10
             import re
-            m = re.search(r"_VAE_GAN_(\\d+)", str(checkpoint or ""))
+            m = re.search(r"_VAE_GAN_(\d+)", str(checkpoint or ""))
             args.checkpoint_epochs = int(m.group(1)) if m else 30000
         if mode == "explain":
             settings = cfg.get("explanation", {})
