@@ -69,7 +69,7 @@ def apply_config(args, parser, mode):
                 args.method = settings.get("method", "residual")
             if args.num_samples is None:
                 args.num_samples = int(settings.get("num_samples", 100))
-            if args.image is None:
+            if args.image is None and not getattr(args, 'all', False):
                 kind = settings.get("anomaly_type", "good")
                 index = int(settings.get("image_index", 0))
                 folder = resolve_path(args.dataset_root) / args.category / "test" / kind
