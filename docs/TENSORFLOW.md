@@ -151,3 +151,18 @@ signed influential regions on the image: **red** indicates features supporting
 higher error and **blue** indicates features opposing it. This avoids the
 all-black mask caused by `positive_only=True` when there are no selected
 positive features. Run without `--skip-existing` to regenerate old figures.
+
+
+### Coefficient-weighted LIME heatmaps
+
+Unlike the earlier binary `get_image_and_mask` display, the LIME panel
+maps signed values from `explanation.local_exp[1]` onto each segment in
+`explanation.segments`. The map is normalized to the strongest absolute
+attribution **within that image** for visualization only; contributions
+below 15% of that strength are hidden, leaving the underlying RGB image
+visible. Red indicates a positive contribution to the sample-relative error
+surrogate, blue a negative contribution. A large blue area does not imply a
+normal classification. These display transformations do not change the
+underlying LIME fit or quantitative anomaly-detection evaluation.
+
+Re-run LIME without `--skip-existing` to overwrite existing binary overlays.

@@ -65,20 +65,24 @@ def explain_image(model, path, method, num_samples, target, lime_batch_size):
         explanation = lime_image.LimeImageExplainer(random_state=42).explain_instance(
             image, predict, labels=(1,), hide_color=0,
             num_samples=num_samples, batch_size=lime_batch_size)
-        _, signed_mask = explanation.get_image_and_mask(
-            1, positive_only=False, num_features=10, hide_rest=False)
-        # Signed LIME mask: +1 supports anomaly score, -1 opposes it.
-        # Show colors directly on the input rather than black 0/1 masks.
-        panels.append(("LIME signed (+red / -blue)", (image, signed_mask)))
+        # Preserve real signed local coefficients instead of binarizing all
+        # selected superpixels into uniformly saturated red/blue regions.
+        from tf_scripts.lime_viz import signed_attribution
+        lime_map = signed_attribution(explanation.segments, explanation.local_exp[1])
+        panels.append(("LIME attribution (+red / -blue)", (image, lime_map)))
 
     fig, axes = plt.subplots(1, len(panels), figsize=(4 * len(panels), 4))
     for ax, (title, arr) in zip(axes, panels):
         if isinstance(arr, tuple):
-            original, signed_mask = arr
+            original, attribution = arr
             ax.imshow(original)
-            overlay = np.ma.masked_where(signed_mask == 0, signed_mask)
+            # Per-image normalization makes relative coefficients visible.
+            # A fixed 0.15 display threshold suppresses weak contributions.
+            scale = float(np.max(np.abs(attribution)))
+            normalized = attribution / scale if scale > 0 else attribution
+            overlay = np.ma.masked_where(np.abs(normalized) < 0.15, normalized)
             ax.imshow(overlay, cmap="bwr", vmin=-1, vmax=1,
-                      alpha=0.55, interpolation="nearest")
+                      alpha=0.65, interpolation="nearest")
         elif arr.ndim == 2:
             ax.imshow(arr, cmap="Reds" if title == "Error map" else "gray")
         else:
