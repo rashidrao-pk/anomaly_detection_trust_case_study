@@ -43,6 +43,12 @@ def explain_image(model, path, method, num_samples, target, lime_batch_size):
     panels = [("Input", image), ("Reconstruction", recon), ("Error map", err)]
     if method == "lime":
         from lime import lime_image
+        # LIME's image API expects two-class probabilities, not raw
+        # reconstruction errors. Use a monotonic bounded surrogate.
+        # Reference is the unperturbed sample's MSE, not a learned
+        # calibration threshold or a claim of real anomaly probability.
+        reference_score = float(np.square(image - recon).sum()) + 1e-8
+
         def predict(batch):
             batch = np.asarray(batch, dtype=np.float32)
             scores = []
@@ -51,19 +57,29 @@ def explain_image(model, path, method, num_samples, target, lime_batch_size):
                 recovered = reconstruct(model, part)
                 scores.append(np.square(part - recovered).sum(axis=(1, 2, 3)))
             scores = np.concatenate(scores)
-            # This is a reconstruction-error surrogate, not a calibrated
-            # anomaly probability. Preserve legacy score formulation.
-            return np.column_stack([np.zeros_like(scores), scores])
+            p_anomaly = scores / (scores + reference_score)
+            return np.column_stack([1.0 - p_anomaly, p_anomaly])
+
+        # labels=(1,) guarantees we explain anomaly score even when the
+        # unperturbed sample receives a normal-leaning surrogate score.
         explanation = lime_image.LimeImageExplainer(random_state=42).explain_instance(
-            image, predict, top_labels=1, hide_color=0,
+            image, predict, labels=(1,), hide_color=0,
             num_samples=num_samples, batch_size=lime_batch_size)
-        mask = explanation.get_image_and_mask(
-            1, positive_only=True, num_features=5, hide_rest=False)[1]
-        panels.append(("LIME positive superpixels", mask))
+        _, signed_mask = explanation.get_image_and_mask(
+            1, positive_only=False, num_features=10, hide_rest=False)
+        # Signed LIME mask: +1 supports anomaly score, -1 opposes it.
+        # Show colors directly on the input rather than black 0/1 masks.
+        panels.append(("LIME signed (+red / -blue)", (image, signed_mask)))
 
     fig, axes = plt.subplots(1, len(panels), figsize=(4 * len(panels), 4))
     for ax, (title, arr) in zip(axes, panels):
-        if arr.ndim == 2:
+        if isinstance(arr, tuple):
+            original, signed_mask = arr
+            ax.imshow(original)
+            overlay = np.ma.masked_where(signed_mask == 0, signed_mask)
+            ax.imshow(overlay, cmap="bwr", vmin=-1, vmax=1,
+                      alpha=0.55, interpolation="nearest")
+        elif arr.ndim == 2:
             ax.imshow(arr, cmap="Reds" if title == "Error map" else "gray")
         else:
             ax.imshow(np.clip(arr, 0, 1))

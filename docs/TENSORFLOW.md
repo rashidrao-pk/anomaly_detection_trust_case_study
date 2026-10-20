@@ -138,3 +138,16 @@ The plotted residual map is a reconstruction discrepancy, not a calibrated
 probability. LIME targets the legacy reconstruction-MSE surrogate; it should
 not be represented as an experimentally validated explanation without a
 faithfulness/GT localization study. No test labels are used for training.
+
+
+### LIME visualization and output interpretation
+
+LIME now explains the anomaly-score column explicitly using `labels=(1,)`.
+It converts squared RGB reconstruction error to a bounded, monotonic,
+sample-relative score `error / (error + original_image_error)` so the LIME
+classifier receives two columns summing to one. **This is a visualization
+surrogate, not a calibrated anomaly probability.** The LIME panel overlays
+signed influential regions on the image: **red** indicates features supporting
+higher error and **blue** indicates features opposing it. This avoids the
+all-black mask caused by `positive_only=True` when there are no selected
+positive features. Run without `--skip-existing` to regenerate old figures.
