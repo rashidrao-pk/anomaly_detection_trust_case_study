@@ -35,7 +35,7 @@ def main():
         def predict(batch):
             batch=np.asarray(batch,dtype=np.float32)
             recon=reconstruct(model,batch)
-            scores=(batch-recon).square().sum(axis=(1,2,3))
+            scores=np.square(batch-recon).sum(axis=(1,2,3))
             return np.column_stack([np.zeros_like(scores),scores])
         explanation=lime_image.LimeImageExplainer(random_state=42).explain_instance(
             image,predict,top_labels=1,hide_color=0,num_samples=a.num_samples)
