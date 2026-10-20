@@ -1,5 +1,8 @@
 # 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
 
+> **TensorFlow script-first branch:** run `python scripts/train.py`, `python scripts/evaluate.py`, and `python scripts/explain.py` rather than editing notebooks. See [the CLI guide](docs/TENSORFLOW.md). The original notebooks remain under `notebooks/`, and the paper archive is preserved in `xai-2024-paper`.
+
+
 ### Explainable and Trustworthy Anomaly Detection using VAE-GAN
 
 <div align="center">
