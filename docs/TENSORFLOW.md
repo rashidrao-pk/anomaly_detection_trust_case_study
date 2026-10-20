@@ -72,3 +72,31 @@ those explanations. LIME results need independent evaluation of faithfulness.
 - `xai-2024-paper`: archival reference, unchanged
 
 Generated `outputs/`, `results/`, and Python caches are excluded from Git.
+
+
+## YAML configuration (recommended)
+
+All three scripts now accept `--config`. Four existing YAMLs are supported:
+`configs/screw.yaml`, `configs/hazelnut.yaml` (local Mac),
+`configs/screw_epito.yaml`, `configs/hazelnut_epito.yaml` (Epito).
+`dataset_root`, `category`, `output_dir`, `batch_size`,
+`latent_dim`, `learning_rate`, `seed` and `epochs` are loaded
+for training; CLI options override YAML values. A relative output path
+is interpreted relative to repository root.
+
+```bash
+python scripts/train.py --config configs/screw_epito.yaml --epochs 30000
+python scripts/evaluate.py --config configs/screw_epito.yaml
+python scripts/explain.py --config configs/screw_epito.yaml
+python scripts/explain.py --config configs/hazelnut.yaml --method residual
+```
+
+**Important:** YAML files currently set `epochs: 10` as a test default;
+pass `--epochs 30000` for the full paper run. Evaluation/explanation
+instead infer `checkpoint_epochs=30000` from the configured `checkpoint:`
+path, **not** the training `epochs` setting. `explanation.anomaly_type`
+and `explanation.image_index` select the test image by its sorted filename;
+`explanation.method` and `num_samples` configure XAI. Existing
+`checkpoint` files are used for evaluation via their parent folder.
+The `checkpoint` YAML field ends in `_model` while evaluation restores
+encoder and decoder component weights from the same folder.

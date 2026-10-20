@@ -8,18 +8,28 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tf_scripts.core import restore_models, load_rgb, reconstruct, residual_map
+from tf_scripts.config import apply_config, require_args, resolve_path
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--dataset-root", required=True)
-    p.add_argument("--category", choices=["screw", "hazelnut"], required=True)
-    p.add_argument("--checkpoint-dir", required=True,
+    p.add_argument("--config", help="YAML configuration from configs/")
+    p.add_argument("--dataset-root")
+    p.add_argument("--category", choices=["screw", "hazelnut"])
+    p.add_argument("--checkpoint-dir",
                    help="Directory with <category>_VAE_GAN_<epochs>_{encoder,decoder}.index")
-    p.add_argument("--checkpoint-epochs", type=int, default=30000)
-    p.add_argument("--latent-dim", type=int, default=32)
-    p.add_argument("--output", default="outputs/tensorflow/evaluation")
+    p.add_argument("--checkpoint-epochs", type=int, default=None)
+    p.add_argument("--latent-dim", type=int, default=None)
+    p.add_argument("--output", default=None)
     a = p.parse_args()
+    a = apply_config(a, p, "evaluate")
+    require_args(a, p, ("dataset_root", "category", "checkpoint_dir"))
+    a.latent_dim = 32 if a.latent_dim is None else int(a.latent_dim)
+    a.checkpoint_epochs = 30000 if a.checkpoint_epochs is None else int(a.checkpoint_epochs)
+    a.output = a.output or "outputs/tensorflow/evaluation"
+    a.dataset_root = str(resolve_path(a.dataset_root))
+    a.checkpoint_dir = str(resolve_path(a.checkpoint_dir))
+    a.output = str(resolve_path(a.output))
     import numpy as np
     from PIL import Image
     from sklearn.metrics import roc_auc_score

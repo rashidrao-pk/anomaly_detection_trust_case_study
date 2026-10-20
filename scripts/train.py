@@ -8,20 +8,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tf_scripts.core import model_parts, checkpoint_prefix
+from tf_scripts.config import apply_config, require_args, resolve_path
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--dataset-root", required=True, help="MVTec root containing screw/ and hazelnut/")
-    p.add_argument("--category", choices=["screw", "hazelnut"], required=True)
-    p.add_argument("--epochs", type=int, default=30000)
-    p.add_argument("--batch-size", type=int, default=32)
-    p.add_argument("--latent-dim", type=int, default=32)
-    p.add_argument("--learning-rate", type=float, default=1e-3)
+    p.add_argument("--config", help="YAML configuration from configs/")
+    p.add_argument("--dataset-root", help="MVTec root containing screw/ and hazelnut/")
+    p.add_argument("--category", choices=["screw", "hazelnut"])
+    p.add_argument("--epochs", type=int, default=None)
+    p.add_argument("--batch-size", type=int, default=None)
+    p.add_argument("--latent-dim", type=int, default=None)
+    p.add_argument("--learning-rate", type=float, default=None)
     p.add_argument("--augmentation", choices=["custom", "minimal", "full", "none"], default="custom")
-    p.add_argument("--output", default="outputs/tensorflow")
-    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--output", default=None)
+    p.add_argument("--seed", type=int, default=None)
     args = p.parse_args()
+    args = apply_config(args, p, "train")
+    require_args(args, p, ("dataset_root", "category"))
+    args.epochs = 30000 if args.epochs is None else int(args.epochs)
+    args.batch_size = 32 if args.batch_size is None else int(args.batch_size)
+    args.latent_dim = 32 if args.latent_dim is None else int(args.latent_dim)
+    args.learning_rate = 1e-3 if args.learning_rate is None else float(args.learning_rate)
+    args.seed = 42 if args.seed is None else int(args.seed)
+    args.output = "outputs/tensorflow" if args.output is None else args.output
+    args.dataset_root = str(resolve_path(args.dataset_root))
+    args.output = str(resolve_path(args.output))
     if args.epochs < 1 or args.batch_size < 1 or args.latent_dim < 1:
         p.error("epochs, batch-size and latent-dim must be positive")
     import tensorflow as tf
