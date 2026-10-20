@@ -9,7 +9,7 @@ import numpy as np
 
 def model_parts(latent_dim=32, learning_rate=1e-3):
     import tensorflow as tf
-    from models import Model_VAE_GAN_functions, VAE, VAE_GAN
+    from models import Model_VAE_GAN_functions, VAE, VAE_GAN, make_adam
     builder = Model_VAE_GAN_functions
     encoder = builder.get_encoder(latent_dim=latent_dim, image_size=[128, 128])
     decoder = builder.get_decoder(latent_dim=latent_dim)
@@ -17,9 +17,9 @@ def model_parts(latent_dim=32, learning_rate=1e-3):
     vae = VAE(encoder, decoder)
     # Original train_step owns optimizers; use independent objects per instance.
     model = VAE_GAN(vae, discriminator,
-        opti1=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-        opti2=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-        opti3=tf.keras.optimizers.Adam(learning_rate=learning_rate))
+        opti1=make_adam(learning_rate=learning_rate),
+        opti2=make_adam(learning_rate=learning_rate),
+        opti3=make_adam(learning_rate=learning_rate))
     model.compile(run_eagerly=True)
     return model
 
