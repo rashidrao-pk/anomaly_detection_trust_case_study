@@ -281,3 +281,18 @@ explanation localization IoU is N/A rather than zero.
 **Scientific limitation:** This best-possible, GT-selected threshold is an
 oracle diagnostic of localization potential, **not** a usable test-time
 decision rule or an unbiased assessment of deployment performance.
+
+
+## Single image filenames and anomalous-only batches
+
+Single-image outputs now include the defect folder, for example
+`scratch_head_005_all.png` or `scratch_head_005_all_eval.png`.
+The default `--all` run **excludes test/good**, so batch explanations and
+localization evaluation run on defect categories only. For an intentional
+normal-class batch use `--all --anomaly-type good`; to include normals
+alongside anomalies use `--all --include-good`.
+
+```bash
+python scripts/explain.py --config configs/screw.yaml --all --method all --evaluate-explanations
+python scripts/explain.py --config configs/screw.yaml --all --include-good --method all
+```
