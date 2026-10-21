@@ -16,7 +16,7 @@ from tf_scripts.xai_utils import (test_images, ground_truth_mask, attribution_ma
 
 
 def explain_image(model, path, dataset_root, category, method, num_samples,
-                  shap_evals, target, lime_batch_size, target_segments=100):
+                  shap_evals, target, lime_batch_size, target_segments=100, fontsize=15):
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
@@ -27,7 +27,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
     error = residual_map(image, recon)
     gt = ground_truth_mask(dataset_root, category, path, image.shape[:2])
 
-    panels = [("Input", image, "image"),
+    panels = [(f"Input", image, "image"),
               ("Input + GT" if gt is not None else "Input + GT (normal)",
                (image, gt), "gt"),
               ("Reconstruction", recon, "image"),
@@ -47,7 +47,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         label = explanation.top_labels[0]
         weights = explanation.local_exp[label]
         lime_map = attribution_map(segments, weights)
-        panels.append(("LIME heatmap (paper bwr)", lime_map, "attribution"))
+        panels.append(("LIME heatmap", lime_map, "attribution"))
     if method in ("shap", "all"):
         import shap
         masker = shap.maskers.Image(recon, recon.shape)
@@ -56,7 +56,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         result = explainer(image[None], max_evals=shap_evals,
                            batch_size=lime_batch_size)
         shap_map = paper_shap_spatial_map(result.values, image.shape)
-        panels.append(("SHAP heatmap (paper bwr)", shap_map, "attribution"))
+        panels.append(("SHAP heatmap", shap_map, "attribution"))
 
     fig, axes = plt.subplots(1, len(panels),
                              figsize=(4.0 * len(panels), 4.6),
@@ -75,12 +75,13 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         else:
             heatmap_artist = reference_heatmap(ax, payload)
             fig.colorbar(heatmap_artist, ax=ax, fraction=0.048, pad=0.02, shrink=0.8)
-        ax.set_title(title, fontsize=11)
-        ax.axis("off")
-    fig.suptitle(
-        f"{category} | class: {path.parent.name} | image ID: {path.stem}",
-        fontsize=13)
-    fig.tight_layout(rect=(0, 0, 1, 0.92))
+        ax.set_title(title, fontsize=fontsize)
+        ax.set_xticks([])
+        ax.set_yticks([])
+    axes[0][0].set_ylabel(f"{category} | {path.parent.name} - {path.stem}", fontsize=fontsize)
+    # fig.suptitle(f"{category} | class: {path.parent.name} | image ID: {path.stem}",fontsize=13)
+    # fig.tight_layout(rect=(0, 0, 1, 0.92))
+    plt.subplots_adjust(left=0.01, right=0.99, top=0.88, bottom=0.05, wspace=0.15)
     target.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(target, dpi=200, bbox_inches="tight")
     plt.close(fig)
