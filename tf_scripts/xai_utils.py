@@ -108,3 +108,60 @@ def reference_heatmap(ax, values):
     maxval = float(np.max(np.abs(finite))) if finite.size else 0.0
     maxval = max(maxval, 1e-8)
     return ax.imshow(array, cmap="bwr", vmin=-maxval, vmax=maxval)
+
+
+def paper_mse_predictor(model, batch_size=200):
+    """Original notebook's single-output, unnormalized reconstruction MSE."""
+    from tf_scripts.core import reconstruct
+
+    def predict(data):
+        data = np.asarray(data, dtype=np.float32)
+        scores = []
+        for start in range(0, len(data), batch_size):
+            chunk = data[start:start + batch_size]
+            rec = reconstruct(model, chunk, deterministic=True)
+            scores.append(np.square(rec - chunk).sum(axis=(1, 2, 3)))
+        return np.concatenate(scores).reshape(-1, 1)
+    return predict
+
+
+def paper_quickshift(image, max_dist):
+    """Original XAI-2024 notebook Quickshift arguments."""
+    from skimage.segmentation import quickshift
+    args = dict(kernel_size=2, max_dist=max_dist, ratio=0.95, sigma=0.05)
+    try:
+        return quickshift(image, rng=1234, **args)
+    except TypeError as err:
+        if "rng" not in str(err):
+            raise
+        return quickshift(image, random_seed=1234, **args)
+
+
+def paper_segments(image, target_segments=100, initial_max_dist=100):
+    """Binary-search Quickshift distance as in the paper's search_segment_number."""
+    if target_segments < 1:
+        raise ValueError("target_segments must be positive")
+    left, right = 0.0, float(initial_max_dist)
+    left_count = len(np.unique(paper_quickshift(image, left)))
+    right_segments = paper_quickshift(image, right)
+    right_count = len(np.unique(right_segments))
+    iteration = 0
+    while iteration < 40 and right_count != target_segments:
+        iteration += 1
+        middle = (left + right) / 2
+        count = len(np.unique(paper_quickshift(image, middle)))
+        if count <= target_segments <= left_count:
+            right, right_count = middle, count
+        else:
+            left, left_count = middle, count
+    return paper_quickshift(image, right)
+
+
+def paper_shap_spatial_map(values, image_shape):
+    """Match original notebook's first channel and single-output indexing."""
+    arr = np.asarray(values)
+    h, w, channels = image_shape
+    expected = (1, h, w, channels, 1)
+    if arr.shape != expected:
+        raise ValueError(f"Expected paper SHAP values shape {expected}, got {arr.shape}")
+    return arr[0, :, :, 0, 0]

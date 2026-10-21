@@ -217,3 +217,34 @@ The current standalone reconstruction-error panel intentionally retains
 uses a bounded reconstruction-error surrogate and RGB-averaged SHAP;
 archived notebook model outputs, channel selection, segmentation, and
 sampling may differ. Compare them before claiming numerical reproduction.
+
+
+## Paper-faithful explanation pipeline (2024 reproduction)
+
+The standard `scripts/explain.py` XAI path now matches the archived paper
+notebooks' definitions: **single-output raw reconstruction MSE**, deterministic
+encoder-mean reconstruction, **Quickshift** with kernel_size=2, ratio=0.95,
+sigma=0.05 and seed 1234, and the archived binary search for approximately
+100 segments of the input/reconstruction 50:50 blend. LIME uses
+`hide_color=reconstruction`, `random_state=1234` and **5,000 samples**.
+SHAP uses `shap.maskers.Image(reconstruction, reconstruction.shape)`, a
+single anomaly output, **5,000 evaluations**, and the notebook's channel-0
+map (`values[0, :, :, 0, 0]`). Both plots use opaque `bwr`, symmetric
+vmin/vmax and individual colorbars. Batch size defaults to **200**.
+
+The earlier bounded two-class error surrogate, SLIC segmentation, black
+perturbation background, blur SHAP masker and RGB-channel averaging are no
+longer used by the standard XAI path. A shorter smoke test can override:
+`--num-samples 100 --shap-samples 100 --target-segments 100`.
+The previously added `Reds` residual display and the class/GT panels remain.
+
+```bash
+python scripts/explain.py --config configs/screw.yaml --method all
+python scripts/explain.py --config configs/screw.yaml --method all \
+  --num-samples 100 --shap-samples 100
+```
+
+These definitions mirror the archived notebook code; runtime/numerical
+reproduction must still be validated with the user's TensorFlow and SHAP
+versions and the identical dataset image. The archival SHAP plot selected
+RGB channel 0; this is intentional, not spatial averaging.

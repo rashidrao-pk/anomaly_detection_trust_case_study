@@ -11,11 +11,12 @@ from tf_scripts.core import restore_models, load_rgb, reconstruct, residual_map
 from tf_scripts.config import apply_config, require_args, resolve_path
 from tf_scripts.xai_utils import (test_images, ground_truth_mask, attribution_map,
                                   reference_heatmap, anomaly_score_predictor,
-                                  shap_spatial_map)
+                                  shap_spatial_map, paper_mse_predictor,
+                                  paper_segments, paper_shap_spatial_map)
 
 
 def explain_image(model, path, dataset_root, category, method, num_samples,
-                  shap_evals, target, lime_batch_size):
+                  shap_evals, target, lime_batch_size, target_segments=100):
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
@@ -32,34 +33,30 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
               ("Reconstruction", recon, "image"),
               ("Error map", error, "error")]
 
-    # Shared bounded score surrogate; NOT a calibrated anomaly probability.
-    # SHAP and LIME must explain exactly the same target.
-    prediction = anomaly_score_predictor(model, image, recon,
-                                         lime_batch_size)
+    # XAI-World 2024: raw, single-output reconstruction MSE.
+    prediction = paper_mse_predictor(model, lime_batch_size)
     if method in ("lime", "all"):
         from lime import lime_image
-        from skimage.segmentation import slic
-        explainer = lime_image.LimeImageExplainer(random_state=42)
+        blend = (image + recon) * 0.5
+        segments = paper_segments(blend, target_segments)
+        explainer = lime_image.LimeImageExplainer(random_state=1234)
         explanation = explainer.explain_instance(
-            image, prediction, labels=(1,), num_samples=num_samples,
-            hide_color=0, batch_size=lime_batch_size,
-            segmentation_fn=lambda x: slic(x, n_segments=100,
-                                           compactness=10, sigma=1,
-                                           start_label=0, channel_axis=-1))
-        weights = explanation.local_exp.get(1, [])
-        lime_map = attribution_map(explanation.segments, weights)
-        panels.append(("LIME heatmap (paper bwr)", lime_map,
-                       "attribution"))
+            image, prediction, top_labels=1, num_samples=num_samples,
+            hide_color=recon, batch_size=lime_batch_size,
+            segmentation_fn=lambda ignored: segments)
+        label = explanation.top_labels[0]
+        weights = explanation.local_exp[label]
+        lime_map = attribution_map(segments, weights)
+        panels.append(("LIME heatmap (paper bwr)", lime_map, "attribution"))
     if method in ("shap", "all"):
         import shap
-        masker = shap.maskers.Image("blur(16,16)", image.shape)
-        explainer = shap.Explainer(prediction, masker, algorithm="partition",
-                                  output_names=["reference", "anomaly surrogate"])
+        masker = shap.maskers.Image(recon, recon.shape)
+        explainer = shap.Explainer(prediction, masker,
+                                  output_names=["Anomaly"])
         result = explainer(image[None], max_evals=shap_evals,
                            batch_size=lime_batch_size)
-        shap_map = shap_spatial_map(result.values, image.shape)
-        panels.append(("SHAP heatmap (paper bwr)", shap_map,
-                       "attribution"))
+        shap_map = paper_shap_spatial_map(result.values, image.shape)
+        panels.append(("SHAP heatmap (paper bwr)", shap_map, "attribution"))
 
     fig, axes = plt.subplots(1, len(panels),
                              figsize=(4.0 * len(panels), 4.6),
@@ -104,13 +101,18 @@ def main():
     p.add_argument("--anomaly-type", help="Restrict --all to one test category")
     p.add_argument("--method", choices=["residual", "lime", "shap", "all"])
     p.add_argument("--num-samples", type=int, help="LIME perturbations")
-    p.add_argument("--shap-samples", type=int, default=200,
+    p.add_argument("--shap-samples", type=int, default=5000,
                    help="SHAP model evaluation budget (>= 6)")
-    p.add_argument("--lime-batch-size", type=int, default=16)
+    p.add_argument("--lime-batch-size", type=int, default=200)
+    p.add_argument("--target-segments", type=int, default=100)
     p.add_argument("--limit", type=int)
     p.add_argument("--skip-existing", action="store_true")
     p.add_argument("--output")
     a = p.parse_args()
+    # The publication defaults take precedence over older YAML demonstration
+    # num_samples: 100, unless overridden explicitly by --num-samples.
+    if a.num_samples is None:
+        a.num_samples = 5000
     a = apply_config(a, p, "explain")
     require_args(a, p, ("category", "checkpoint_dir", "dataset_root") if a.all else
                  ("category", "checkpoint_dir", "dataset_root", "image"))
@@ -118,6 +120,8 @@ def main():
         p.error("--anomaly-type requires --all")
     if a.limit is not None and (not a.all or a.limit < 1):
         p.error("--limit requires --all and positive N")
+    if a.target_segments < 1:
+        p.error("--target-segments must be positive")
     if a.shap_samples < 6 or a.lime_batch_size < 1:
         p.error("--shap-samples must be >=6 and --lime-batch-size >=1")
     if a.num_samples is not None and a.num_samples < 2:
@@ -147,7 +151,8 @@ def main():
         existing = a.skip_existing and target.is_file()
         score = ("" if existing else explain_image(
             model, image_path, dataset_root, a.category, a.method,
-            a.num_samples, a.shap_samples, target, a.lime_batch_size))
+            a.num_samples, a.shap_samples, target, a.lime_batch_size,
+            a.target_segments))
         rows.append(dict(image_path=str(image_path),
                          defect_type=image_path.parent.name,
                          image_id=image_path.stem,
