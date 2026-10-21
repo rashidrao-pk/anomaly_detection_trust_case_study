@@ -131,6 +131,7 @@ def main():
     mode.add_argument("--image")
     mode.add_argument("--all", action="store_true")
     p.add_argument("--anomaly-type", help="Restrict --all to one test category")
+    p.add_argument("--include-good", action="store_true", help="Include normal samples in --all")
     p.add_argument("--method", choices=["residual", "lime", "shap", "all"])
     p.add_argument("--num-samples", type=int, help="LIME perturbations")
     p.add_argument("--shap-samples", type=int, default=5000,
@@ -152,6 +153,8 @@ def main():
                  ("category", "checkpoint_dir", "dataset_root", "image"))
     if a.evaluate_explanations and a.method == "residual":
         p.error("--evaluate-explanations requires --method lime, shap, or all")
+    if a.include_good and not a.all:
+        p.error("--include-good requires --all")
     if a.anomaly_type and not a.all:
         p.error("--anomaly-type requires --all")
     if a.limit is not None and (not a.all or a.limit < 1):
@@ -172,7 +175,7 @@ def main():
     model = restore_models(resolve_path(a.checkpoint_dir), a.category,
                            a.checkpoint_epochs, a.latent_dim)
     if a.all:
-        images = test_images(dataset_root, a.category, a.anomaly_type)
+        images = test_images(dataset_root, a.category, a.anomaly_type, include_good=a.include_good)
         images = images[:a.limit] if a.limit else images
         output_root = output_dir / "batch" / a.category
     else:
@@ -184,7 +187,7 @@ def main():
     for index, image_path in enumerate(images, start=1):
         target = ((output_root / image_path.parent.name /
                    f"{image_path.stem}_{a.method}{suffix}.png") if a.all else
-                  output_root / f"{image_path.stem}_{a.method}.png")
+                  output_root / f"{image_path.parent.name}_{image_path.stem}_{a.method}{suffix}.png")
         existing = a.skip_existing and target.is_file()
         if existing:
             score, evaluation = "", {}

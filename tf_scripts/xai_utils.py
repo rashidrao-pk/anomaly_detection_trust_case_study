@@ -4,12 +4,12 @@ import numpy as np
 from PIL import Image
 
 
-def test_images(dataset_root, category, anomaly_type=None):
+def test_images(dataset_root, category, anomaly_type=None, include_good=False):
     base = Path(dataset_root) / category / "test"
     if not base.is_dir():
         raise FileNotFoundError(base)
     folders = ([base / anomaly_type] if anomaly_type else
-               sorted(f for f in base.iterdir() if f.is_dir()))
+               sorted(f for f in base.iterdir() if f.is_dir() and (include_good or f.name != "good")))
     result = []
     for folder in folders:
         if not folder.is_dir():
