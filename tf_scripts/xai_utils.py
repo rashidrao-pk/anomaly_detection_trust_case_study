@@ -165,3 +165,40 @@ def paper_shap_spatial_map(values, image_shape):
     if arr.shape != expected:
         raise ValueError(f"Expected paper SHAP values shape {expected}, got {arr.shape}")
     return arr[0, :, :, 0, 0]
+
+
+def optimal_jaccard(mask, attribution):
+    """Best nonempty predicted-area IoU over all unique attribution cutoffs."""
+    truth = np.asarray(mask, dtype=bool)
+    scores = np.asarray(attribution, dtype=np.float64)
+    if truth.shape != scores.shape or truth.ndim != 2:
+        raise ValueError("Mask and scores must have identical 2D shapes")
+    if not np.isfinite(scores).all():
+        raise ValueError("Attributions must be finite")
+    if not truth.any():
+        return float("nan"), float("nan"), np.zeros_like(truth, dtype=bool)
+    order = np.argsort(-scores.ravel(), kind="stable")
+    sorted_scores = scores.ravel()[order]
+    sorted_true = truth.ravel()[order]
+    endings = np.r_[np.flatnonzero(np.diff(sorted_scores) != 0),
+                    len(sorted_scores) - 1]
+    tp = np.cumsum(sorted_true, dtype=np.int64)[endings]
+    selected = endings + 1
+    union = selected + int(truth.sum()) - tp
+    ious = tp / union
+    best = int(np.argmax(ious))
+    cutoff = float(sorted_scores[endings[best]])
+    return float(ious[best]), cutoff, scores >= cutoff
+
+
+def paper_jaccard_visualization(mask, prediction):
+    """XAI-2024 pixel colors: background white, GT cyan, pred red, overlap black."""
+    truth = np.asarray(mask, dtype=bool)
+    pred = np.asarray(prediction, dtype=bool)
+    if truth.shape != pred.shape:
+        raise ValueError("Ground truth and prediction sizes differ")
+    out = np.empty((*truth.shape, 3), dtype=np.uint8)
+    out[..., 0] = 255 * (~truth)
+    out[..., 1] = 255 * (~pred)
+    out[..., 2] = 255 * (~pred)
+    return out
