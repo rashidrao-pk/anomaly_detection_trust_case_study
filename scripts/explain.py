@@ -65,23 +65,29 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
     evaluation = {}
     if evaluate_explanations:
         for name, values in attribution_maps.items():
+            # Match the paper figure: Jaccard notation as the panel title,
+            # numeric IoU inside the upper-left of the image.
+            panel_title = (r"J($\gamma,\gamma^\prime_L$)" if name == "lime"
+                           else r"J($\gamma,\gamma^\prime_S$)")
             if gt is None or not gt.any():
                 evaluation[name + "_best_iou"] = float("nan")
                 evaluation[name + "_threshold"] = float("nan")
                 image_panel = np.full((*image.shape[:2], 3), 255, dtype=np.uint8)
-                title = name.upper() + " | IoU N/A (normal)"
+                overlay_text = "N/A"
             else:
                 best_iou, cutoff, predicted = optimal_jaccard(gt, values)
                 evaluation[name + "_best_iou"] = best_iou
                 evaluation[name + "_threshold"] = cutoff
                 image_panel = paper_jaccard_visualization(gt, predicted)
-                title = name.upper() + f" | optimal IoU {best_iou:.4f}"
-            panels.append((title, image_panel, "evaluation"))
+                overlay_text = f"{best_iou:.4f}"
+            panels.append((panel_title, image_panel, "evaluation", overlay_text))
 
     fig, axes = plt.subplots(1, len(panels),
                              figsize=(4.0 * len(panels), 4.6),
                              squeeze=False)
-    for ax, (title, payload, kind) in zip(axes[0], panels):
+    for ax, panel in zip(axes[0], panels):
+        title, payload, kind = panel[:3]
+        overlay_text = panel[3] if len(panel) > 3 else None
         if kind == "image":
             ax.imshow(np.clip(payload, 0, 1))
         elif kind == "gt":
@@ -92,6 +98,9 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
                            colors=["cyan"], linewidths=1.5)
         elif kind == "evaluation":
             ax.imshow(payload)
+            if overlay_text is not None:
+                ax.text(0.03, 0.95, overlay_text, transform=ax.transAxes,
+                        ha="left", va="top", fontsize=fontsize - 1, color="black")
         elif kind == "error":
             ax.imshow(payload, cmap="Reds", vmin=0)
         else:
