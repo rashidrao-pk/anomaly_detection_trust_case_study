@@ -94,3 +94,17 @@ def shap_spatial_map(values, image_shape):
     if arr.ndim == 4 and arr.shape == (1, h, w, c):
         return arr[0].mean(axis=-1)
     raise ValueError(f"Unexpected SHAP result shape: {arr.shape}")
+
+
+def reference_heatmap(ax, values):
+    """Plot signed weights in the XAI-2024 notebook style.
+
+    Both paper notebooks use opaque Matplotlib bwr and a symmetric color
+    limit of +/- max(abs(weight)), plus a vertical colorbar. Do not display
+    a transparent overlay: it distorts the apparent color of signed weights.
+    """
+    array = np.asarray(values, dtype=np.float32)
+    finite = array[np.isfinite(array)]
+    maxval = float(np.max(np.abs(finite))) if finite.size else 0.0
+    maxval = max(maxval, 1e-8)
+    return ax.imshow(array, cmap="bwr", vmin=-maxval, vmax=maxval)

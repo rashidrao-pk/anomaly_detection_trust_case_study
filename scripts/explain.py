@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT))
 from tf_scripts.core import restore_models, load_rgb, reconstruct, residual_map
 from tf_scripts.config import apply_config, require_args, resolve_path
 from tf_scripts.xai_utils import (test_images, ground_truth_mask, attribution_map,
-                                  display_overlay, anomaly_score_predictor,
+                                  reference_heatmap, anomaly_score_predictor,
                                   shap_spatial_map)
 
 
@@ -48,7 +48,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
                                            start_label=0, channel_axis=-1))
         weights = explanation.local_exp.get(1, [])
         lime_map = attribution_map(explanation.segments, weights)
-        panels.append(("LIME weights (+red / -blue)", (image, lime_map),
+        panels.append(("LIME heatmap (paper bwr)", lime_map,
                        "attribution"))
     if method in ("shap", "all"):
         import shap
@@ -58,7 +58,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         result = explainer(image[None], max_evals=shap_evals,
                            batch_size=lime_batch_size)
         shap_map = shap_spatial_map(result.values, image.shape)
-        panels.append(("SHAP weights (+red / -blue)", (image, shap_map),
+        panels.append(("SHAP heatmap (paper bwr)", shap_map,
                        "attribution"))
 
     fig, axes = plt.subplots(1, len(panels),
@@ -76,8 +76,8 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         elif kind == "error":
             ax.imshow(payload, cmap="Reds", vmin=0)
         else:
-            source, weights = payload
-            display_overlay(ax, source, weights)
+            heatmap_artist = reference_heatmap(ax, payload)
+            fig.colorbar(heatmap_artist, ax=ax, fraction=0.048, pad=0.02, shrink=0.8)
         ax.set_title(title, fontsize=11)
         ax.axis("off")
     fig.suptitle(

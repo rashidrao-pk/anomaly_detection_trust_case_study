@@ -200,3 +200,20 @@ python scripts/explain.py --config configs/screw.yaml --all --method all \\
 You can select `--method shap` for SHAP-only results or `--method lime`
 for LIME-only results. Identical image basenames in different anomaly
 categories are kept in separate folders and recorded in the CSV manifest.
+
+
+### XAI-2024 original heatmap styling
+
+The LIME and SHAP panels use **opaque** `cmap='bwr'` images with symmetric
+`vmin=-max(abs(weights))`, `vmax=+max(abs(weights))`, and an individual
+vertical colorbar, matching `AD_VAE_GAN_SCREW.ipynb` and
+`AD_VAE_GAN_HAZELNUT.ipynb` from the `xai-2024-paper` branch.
+The prior transparent, magnitude-weighted red/blue overlays did **not**
+match these publication plots; that alternative helper remains available
+for optional overlays but is not used by the standard panels.
+The current standalone reconstruction-error panel intentionally retains
+`Reds`, whereas the archive used `bwr` for some anomaly-map figures.
+**Styling parity does not imply algorithmic parity:** the current script
+uses a bounded reconstruction-error surrogate and RGB-averaged SHAP;
+archived notebook model outputs, channel selection, segmentation, and
+sampling may differ. Compare them before claiming numerical reproduction.
