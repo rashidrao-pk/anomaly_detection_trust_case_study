@@ -166,3 +166,37 @@ normal classification. These display transformations do not change the
 underlying LIME fit or quantitative anomaly-detection evaluation.
 
 Re-run LIME without `--skip-existing` to overwrite existing binary overlays.
+
+
+## Extended XAI output: ground truth, LIME, SHAP
+
+The `explain.py` CLI now renders the class folder and zero-padded image ID in
+its figure heading. Every figure includes **Input**, **Input + GT** (cyan
+contour where anomaly labels exist), **Reconstruction**, and **Reds error map**.
+For a normal image, GT is correctly absent.
+
+Choose `--method lime`, `--method shap`, or `--method all` to append signed
+attribution overlays (red positive, blue negative). Magnitude controls opacity
+so broad low-magnitude negative superpixels no longer obscure the entire
+image. LIME uses SLIC segments; SHAP uses an image blur masker with the
+Partition explainer. Both explain the *same bounded, sample-relative
+reconstruction-error surrogate*, not a trained classification probability.
+SHAP is not guaranteed to outperform LIME; use GT-based validation before
+making faithfulness claims. `--shap-samples` is a model-evaluation budget;
+SHAP is comparatively expensive. Results are visualization-only until tested.
+
+```bash
+# Quick run on Mac
+python scripts/explain.py --config configs/screw.yaml --method all \\
+  --num-samples 200 --shap-samples 100
+# Five test images
+python scripts/explain.py --config configs/screw.yaml --all --limit 5 \\
+  --method all --num-samples 200 --shap-samples 100
+# Full test set; avoid --skip-existing when replacing old figures
+python scripts/explain.py --config configs/screw.yaml --all --method all \\
+  --num-samples 1000 --shap-samples 200
+```
+
+You can select `--method shap` for SHAP-only results or `--method lime`
+for LIME-only results. Identical image basenames in different anomaly
+categories are kept in separate folders and recorded in the CSV manifest.
