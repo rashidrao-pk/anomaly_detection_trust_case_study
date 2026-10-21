@@ -248,3 +248,36 @@ These definitions mirror the archived notebook code; runtime/numerical
 reproduction must still be validated with the user's TensorFlow and SHAP
 versions and the identical dataset image. The archival SHAP plot selected
 RGB channel 0; this is intentional, not spatial averaging.
+
+
+## Explain only, or explain + evaluate
+
+Without additional flags, `scripts/explain.py` creates explanation panels
+only. Add `--evaluate-explanations` to append the original XAI-2024-style
+optimal-Jaccard (IoU) ground-truth agreement panels for each requested
+LIME/SHAP map and include the scores and thresholds in the batch CSV.
+
+```bash
+# Explain only
+python scripts/explain.py --config configs/screw.yaml --method all
+
+# Explain + evaluate with original paper-style overlap panels
+python scripts/explain.py --config configs/screw.yaml --method all --evaluate-explanations
+
+# Batch explain + evaluate
+python scripts/explain.py --config configs/screw.yaml --all --method all --evaluate-explanations
+```
+
+For speed, append `--num-samples 100 --shap-samples 100` to test first.
+Figures produced with evaluation have `_eval.png` suffix and CSV manifests
+have `_eval.csv`, preserving previous explanation-only outputs.
+
+The Jaccard overlap image follows the paper's `combine_groundtruth_explanation`
+colors: white = neither, cyan = GT-only, red = explanation-only, black =
+overlap. IoU is maximized over unique attribution thresholds, with tied
+values grouped together. For normal images with no positive GT mask, the
+explanation localization IoU is N/A rather than zero.
+
+**Scientific limitation:** This best-possible, GT-selected threshold is an
+oracle diagnostic of localization potential, **not** a usable test-time
+decision rule or an unbiased assessment of deployment performance.
