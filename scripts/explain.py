@@ -82,13 +82,36 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
                 image_panel = paper_jaccard_visualization(gt, predicted)
                 overlay_text = f"{best_iou:.4f}"
             panels.append((panel_title, image_panel, "evaluation", overlay_text))
+    # Allocate colorbars their own columns: Matplotlib's fig.colorbar(ax=ax)
+    # otherwise shrinks the LIME/SHAP image panels.
     fontsize = 19 if evaluate_explanations else 15
-    fig, axes = plt.subplots(1, len(panels),
-                             figsize=(4.0 * len(panels), 4.6),
-                             squeeze=False)
-    for ax, panel in zip(axes[0], panels):
+    panel_widths = []
+    for panel in panels:
+        panel_widths.append(1.0)
+        if panel[2] == "attribution":
+            panel_widths.append(0.07)
+
+    fig = plt.figure(figsize=(3.35 * len(panels) + 0.35 * len(attribution_maps),
+                              3.95))
+    grid = fig.add_gridspec(
+        1, len(panel_widths), width_ratios=panel_widths,
+        left=0.025, right=0.985, bottom=0.08, top=0.87, wspace=0.15)
+
+    # Same absolute color limits for BOTH methods within this figure.
+    # These are raw attribution units, not separately normalized overlays.
+    shared_max = max(
+        (float(np.max(np.abs(values))) for values in attribution_maps.values()),
+        default=1e-8)
+    shared_max = max(shared_max, 1e-8)
+    column = 0
+    first_ax = None
+    for panel in panels:
         title, payload, kind = panel[:3]
         overlay_text = panel[3] if len(panel) > 3 else None
+        ax = fig.add_subplot(grid[0, column])
+        if first_ax is None:
+            first_ax = ax
+        column += 1
         if kind == "image":
             ax.imshow(np.clip(payload, 0, 1))
         elif kind == "gt":
@@ -105,15 +128,19 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         elif kind == "error":
             ax.imshow(payload, cmap="Reds", vmin=0)
         else:
-            heatmap_artist = reference_heatmap(ax, payload)
-            fig.colorbar(heatmap_artist, ax=ax, fraction=0.048, pad=0.02, shrink=0.8)
+            heatmap_artist = ax.imshow(
+                payload, cmap="bwr", vmin=-shared_max, vmax=shared_max)
+            cax = fig.add_subplot(grid[0, column])
+            column += 1
+            fig.colorbar(heatmap_artist, cax=cax)
+            cax.tick_params(labelsize=max(8, fontsize - 8))
+        ax.set_aspect("equal", adjustable="box")
         ax.set_title(title, fontsize=fontsize)
         ax.set_xticks([])
         ax.set_yticks([])
-    axes[0][0].set_ylabel(f"{category} | {path.parent.name} - {path.stem}", fontsize=fontsize)
-    # fig.suptitle(f"{category} | class: {path.parent.name} | image ID: {path.stem}",fontsize=13)
-    # fig.tight_layout(rect=(0, 0, 1, 0.92))
-    plt.subplots_adjust(left=0.01, right=0.99, top=0.88, bottom=0.05, wspace=0.15)
+
+    first_ax.set_ylabel(f"{category} | {path.parent.name} - {path.stem}",
+                        fontsize=fontsize)
     target.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(target, dpi=200, bbox_inches="tight")
     plt.close(fig)

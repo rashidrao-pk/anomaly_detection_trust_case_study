@@ -296,3 +296,17 @@ alongside anomalies use `--all --include-good`.
 python scripts/explain.py --config configs/screw.yaml --all --method all --evaluate-explanations
 python scripts/explain.py --config configs/screw.yaml --all --include-good --method all
 ```
+
+
+### Consistent explanation figure sizing and color scales
+
+LIME and SHAP panels have the same square image axes as Input, GT,
+Reconstruction, Error and IoU panels. Colorbars occupy **dedicated narrow
+GridSpec columns**, so they do not shrink the explanation axes. Both
+attribution heatmaps use a **shared symmetric absolute color scale** based
+on the strongest absolute attribution within that figure, with `bwr`.
+This allows direct color-intensity comparison but may make the method with
+smaller raw attribution magnitudes look pale. It is intentional: a common
+scale, rather than independent rescaling, preserves relative magnitudes.
+The error map retains its separate `Reds` scale because reconstruction
+error units are different from attribution units.
