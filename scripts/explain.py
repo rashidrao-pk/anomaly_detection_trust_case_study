@@ -17,7 +17,8 @@ from tf_scripts.xai_utils import (test_images, ground_truth_mask, attribution_ma
 
 
 def explain_image(model, path, dataset_root, category, method, num_samples,
-                  shap_evals, target, lime_batch_size, target_segments=100, fontsize=15, evaluate_explanations=False):
+                  shap_evals, target, lime_batch_size, target_segments=100, fontsize=15,
+                  evaluate_explanations=False):
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
@@ -81,7 +82,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
                 image_panel = paper_jaccard_visualization(gt, predicted)
                 overlay_text = f"{best_iou:.4f}"
             panels.append((panel_title, image_panel, "evaluation", overlay_text))
-
+    fontsize = 19 if evaluate_explanations else 15
     fig, axes = plt.subplots(1, len(panels),
                              figsize=(4.0 * len(panels), 4.6),
                              squeeze=False)
@@ -100,7 +101,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
             ax.imshow(payload)
             if overlay_text is not None:
                 ax.text(0.03, 0.95, overlay_text, transform=ax.transAxes,
-                        ha="left", va="top", fontsize=fontsize - 1, color="black")
+                        ha="left", va="top", fontsize=fontsize, color="black")
         elif kind == "error":
             ax.imshow(payload, cmap="Reds", vmin=0)
         else:
