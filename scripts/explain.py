@@ -12,11 +12,12 @@ from tf_scripts.config import apply_config, require_args, resolve_path
 from tf_scripts.xai_utils import (test_images, ground_truth_mask, attribution_map,
                                   reference_heatmap, anomaly_score_predictor,
                                   shap_spatial_map, paper_mse_predictor,
-                                  paper_segments, paper_shap_spatial_map)
+                                  paper_segments, paper_shap_spatial_map,
+                                  optimal_jaccard, paper_jaccard_visualization)
 
 
 def explain_image(model, path, dataset_root, category, method, num_samples,
-                  shap_evals, target, lime_batch_size, target_segments=100, fontsize=15):
+                  shap_evals, target, lime_batch_size, target_segments=100, fontsize=15, evaluate_explanations=False):
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
@@ -35,6 +36,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
 
     # XAI-World 2024: raw, single-output reconstruction MSE.
     prediction = paper_mse_predictor(model, lime_batch_size)
+    attribution_maps = {}
     if method in ("lime", "all"):
         from lime import lime_image
         blend = (image + recon) * 0.5
@@ -48,6 +50,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
         weights = explanation.local_exp[label]
         lime_map = attribution_map(segments, weights)
         panels.append(("LIME heatmap", lime_map, "attribution"))
+        attribution_maps["lime"] = lime_map
     if method in ("shap", "all"):
         import shap
         masker = shap.maskers.Image(recon, recon.shape)
@@ -57,6 +60,23 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
                            batch_size=lime_batch_size)
         shap_map = paper_shap_spatial_map(result.values, image.shape)
         panels.append(("SHAP heatmap", shap_map, "attribution"))
+        attribution_maps["shap"] = shap_map
+
+    evaluation = {}
+    if evaluate_explanations:
+        for name, values in attribution_maps.items():
+            if gt is None or not gt.any():
+                evaluation[name + "_best_iou"] = float("nan")
+                evaluation[name + "_threshold"] = float("nan")
+                image_panel = np.full((*image.shape[:2], 3), 255, dtype=np.uint8)
+                title = name.upper() + " | IoU N/A (normal)"
+            else:
+                best_iou, cutoff, predicted = optimal_jaccard(gt, values)
+                evaluation[name + "_best_iou"] = best_iou
+                evaluation[name + "_threshold"] = cutoff
+                image_panel = paper_jaccard_visualization(gt, predicted)
+                title = name.upper() + f" | optimal IoU {best_iou:.4f}"
+            panels.append((title, image_panel, "evaluation"))
 
     fig, axes = plt.subplots(1, len(panels),
                              figsize=(4.0 * len(panels), 4.6),
@@ -70,6 +90,8 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
             if mask is not None and mask.any():
                 ax.contour(mask.astype(float), levels=[0.5],
                            colors=["cyan"], linewidths=1.5)
+        elif kind == "evaluation":
+            ax.imshow(payload)
         elif kind == "error":
             ax.imshow(payload, cmap="Reds", vmin=0)
         else:
@@ -85,7 +107,7 @@ def explain_image(model, path, dataset_root, category, method, num_samples,
     target.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(target, dpi=200, bbox_inches="tight")
     plt.close(fig)
-    return float(error.max())
+    return float(error.max()), evaluation
 
 
 def main():
@@ -108,6 +130,8 @@ def main():
     p.add_argument("--target-segments", type=int, default=100)
     p.add_argument("--limit", type=int)
     p.add_argument("--skip-existing", action="store_true")
+    p.add_argument("--evaluate-explanations", action="store_true",
+                   help="Add paper-style optimal Jaccard/GT panels and CSV metrics")
     p.add_argument("--output")
     a = p.parse_args()
     # The publication defaults take precedence over older YAML demonstration
@@ -117,6 +141,8 @@ def main():
     a = apply_config(a, p, "explain")
     require_args(a, p, ("category", "checkpoint_dir", "dataset_root") if a.all else
                  ("category", "checkpoint_dir", "dataset_root", "image"))
+    if a.evaluate_explanations and a.method == "residual":
+        p.error("--evaluate-explanations requires --method lime, shap, or all")
     if a.anomaly_type and not a.all:
         p.error("--anomaly-type requires --all")
     if a.limit is not None and (not a.all or a.limit < 1):
@@ -145,27 +171,36 @@ def main():
         output_root = output_dir
 
     rows = []
+    suffix = "_eval" if a.evaluate_explanations else ""
     for index, image_path in enumerate(images, start=1):
         target = ((output_root / image_path.parent.name /
-                   f"{image_path.stem}_{a.method}.png") if a.all else
+                   f"{image_path.stem}_{a.method}{suffix}.png") if a.all else
                   output_root / f"{image_path.stem}_{a.method}.png")
         existing = a.skip_existing and target.is_file()
-        score = ("" if existing else explain_image(
-            model, image_path, dataset_root, a.category, a.method,
-            a.num_samples, a.shap_samples, target, a.lime_batch_size,
-            a.target_segments))
-        rows.append(dict(image_path=str(image_path),
-                         defect_type=image_path.parent.name,
-                         image_id=image_path.stem,
-                         label=int(image_path.parent.name != "good"),
-                         method=a.method, figure=str(target),
-                         status="skipped" if existing else "generated",
-                         max_residual=score))
+        if existing:
+            score, evaluation = "", {}
+        else:
+            score, evaluation = explain_image(
+                model, image_path, dataset_root, a.category, a.method,
+                a.num_samples, a.shap_samples, target, a.lime_batch_size,
+                a.target_segments, evaluate_explanations=a.evaluate_explanations)
+        rows.append(dict(
+            image_path=str(image_path),
+            defect_type=image_path.parent.name,
+            image_id=image_path.stem,
+            label=int(image_path.parent.name != "good"),
+            method=a.method, figure=str(target),
+            status="skipped" if existing else "generated",
+            max_residual=score,
+            lime_best_iou=evaluation.get("lime_best_iou", ""),
+            lime_threshold=evaluation.get("lime_threshold", ""),
+            shap_best_iou=evaluation.get("shap_best_iou", ""),
+            shap_threshold=evaluation.get("shap_threshold", "")))
         print(f"[{index}/{len(images)}] {rows[-1]['status']}: {target}", flush=True)
 
     if a.all:
         output_root.mkdir(parents=True, exist_ok=True)
-        manifest = output_root / f"manifest_{a.method}.csv"
+        manifest = output_root / f"manifest_{a.method}{suffix}.csv"
         with manifest.open("w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
             writer.writeheader()
@@ -173,6 +208,8 @@ def main():
         print(f"Manifest: {manifest}")
     else:
         print(rows[0]["figure"])
+        if a.evaluate_explanations:
+            print({k:v for k,v in rows[0].items() if "iou" in k or "threshold" in k})
 
 
 if __name__ == "__main__":
