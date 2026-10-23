@@ -1,6 +1,6 @@
 # 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
 
-> **TensorFlow script-first branch:** run `python scripts/train.py`, `python scripts/evaluate.py`, and `python scripts/explain.py` rather than editing notebooks. See [the CLI guide](docs/TENSORFLOW.md). The original notebooks remain under `notebooks/`, and the paper archive is preserved in `xai-2024-paper`.
+> **Default branch: TensorFlow Python scripts.** Use `scripts/` for training, evaluation, LIME/SHAP explanations, Jaccard analysis and paper figures. To reproduce the **original 2024 notebook workflow**, switch to the [`xai-2024-paper` archive](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper). PyTorch development remains on [`pytorch`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/pytorch).
 
 
 ### Explainable and Trustworthy Anomaly Detection using VAE-GAN
@@ -177,15 +177,25 @@ Experiments were conducted on the [MVTec Anomaly Detection Dataset](https://www.
 # 📁 Repository Structure
 
 ```text
-├── models/                         # Pre-trained VAE-GAN models
-├── results/                        # Generated experimental results
-├── imgs/                           # Figures and repository assets
-├── utils.py                        # Utility functions
-├── models.py                       # VAE-GAN architecture
-├── AD_VAE_GAN_SCREW.ipynb          # Screw dataset experiments
-├── AD_VAE_GAN_HAZELNUT.ipynb       # Hazelnut dataset experiments
+├── configs/                      # Local/Epito YAML paths and settings
+├── scripts/                      # TensorFlow training, evaluation, XAI and figures
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── explain.py
+│   ├── check_inputs.py
+│   ├── plot_samples.py
+│   ├── plot_jaccard_vs_score.py
+│   └── plot_training_curves.py
+├── tf_scripts/                   # Shared model, XAI and plotting utilities
+├── models/                       # Archived TensorFlow model checkpoints
+├── docs/                         # TensorFlow and paper figure guides
+├── notebooks/                    # Copies of notebooks; paper archive linked above
+├── models.py                     # VAE-GAN architecture
+├── utils.py                      # Historical TensorFlow utilities
 └── requirements.txt
 ```
+
+Original published notebook code and historical outputs: [`xai-2024-paper`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper).
 
 ---
 
