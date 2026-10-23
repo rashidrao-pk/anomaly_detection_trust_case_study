@@ -13,9 +13,9 @@ output_dir: outputs/screw
 # Default image selection for scripts/explain.py
 explanation:
   anomaly_type: scratch_head
-  image_index: 0
+  image_index: 5
   method: lime
-  num_samples: 100
+  num_samples: 1000
   target_segments: 100
   random_state: 1234
   batch_size: 200

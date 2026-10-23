@@ -1,5 +1,8 @@
 # 🦠 Can I Trust My Anomaly Detection System? A Case Study Based on Explainable AI
 
+> **TensorFlow script-first branch:** run `python scripts/train.py`, `python scripts/evaluate.py`, and `python scripts/explain.py` rather than editing notebooks. See [the CLI guide](docs/TENSORFLOW.md). The original notebooks remain under `notebooks/`, and the paper archive is preserved in `xai-2024-paper`.
+
+
 ### Explainable and Trustworthy Anomaly Detection using VAE-GAN
 
 <div align="center">
@@ -21,6 +24,43 @@
 <img src="https://img.shields.io/github/last-commit/rashidrao-pk/anomaly_detection_trust_case_study" alt="Last Commit">
 </div>
 
+
+## Choose an implementation
+
+| Workflow | Code | When to use |
+|---|---|---|
+| **TensorFlow scripts (default)** | [`main`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/main) | Reproducible command-line training, evaluation, XAI, figures |
+| **Original published notebooks** | [`xai-2024-paper`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper) | Historical notebook experiments and published results |
+| **PyTorch alternative** | [`pytorch`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/pytorch) | PyTorch development and comparison |
+
+### Try the original XAI-2024 notebooks
+
+Open the [Screw notebook](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/AD_VAE_GAN_SCREW.ipynb) or [Hazelnut notebook](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/AD_VAE_GAN_HAZELNUT.ipynb). To run the original notebook code rather than the current scripts:
+
+```bash
+git clone https://github.com/rashidrao-pk/anomaly_detection_trust_case_study.git
+cd anomaly_detection_trust_case_study
+git switch xai-2024-paper
+# Create a compatible Python environment and configure MVTec AD paths
+# before running the notebooks.
+```
+
+Archived [Screw experiment results](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper/results/screw) and [Hazelnut experiment results](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper/results/hazelnut) are preserved on that branch. They are intentionally not tracked in the script-first branch.
+
+### Run the script-first TensorFlow implementation
+
+```bash
+pip install -r requirements.txt
+python scripts/evaluate.py --config configs/screw.yaml
+python scripts/explain.py --config configs/screw.yaml --method all --evaluate-explanations
+python scripts/check_inputs.py --config configs/screw.yaml
+python scripts/plot_samples.py --config configs/screw.yaml
+python scripts/plot_training_curves.py --config configs/screw.yaml
+```
+
+Choose `configs/screw_epito.yaml` for your Epito environment or the Hazelnut YAML for that category. Edit dataset paths for your own machine before running. For the full workflow see [TensorFlow CLI instructions](docs/TENSORFLOW.md) and [paper-figure scripts](docs/PAPER_FIGURES.md).
+
+---
 
 ## 📖 Overview
 
@@ -125,12 +165,12 @@ Experiments were conducted on the [MVTec Anomaly Detection Dataset](https://www.
 - 🔩 Screw
 - 🌰 Hazelnut
 
-### Generated Results
+### Published results (archived notebook branch)
 
 | Dataset | PDF Results | HTML Results |
 |---|---|---|
-| Screw | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html) |
-| Hazelnut | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.html) |
+| Screw | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/screw/imgs_screw_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/screw/imgs_screw_full.html) |
+| Hazelnut | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/hazelnut/imgs_hazelnut_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/hazelnut/imgs_hazelnut_full.html) |
 
 ---
 
@@ -259,19 +299,3 @@ If you find this repository useful in your research, please consider:
 - 📚 Citing our paper 
 
 Your support helps improve and expand future research in Explainable AI and anomaly detection.
-
----
-
-## Python-script refactoring (draft)
-
-A notebook-free, configurable implementation is under development in
-[`refactor/python-scripts`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/refactor/python-scripts).
-See [Python CLI guide](docs/PYTHON_SCRIPTS.md) for supported commands, experiment
-configuration, testing and current scientific limitations.
-
-**Published XAI 2024 source:** The complete original notebooks, trained models,
-results and files are preserved at
-[`xai-2024-paper`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper).
-That branch is the frozen reference. The Python refactor should not be
-considered a validated reproduction until checkpoint/loading and experimental
-parity have been established.

@@ -1,21 +1,18 @@
-__pycache__/**
-__pycache__/
-*.py[cod]
-.ipynb_checkpoints/
-.pytest_cache/
-.venv/
-venv/
+#  Precomputed results
+results/**
+# models/**
+
+.DS_Store/
 .DS_Store
-data/
-outputs/
 
-
-.ipynb_checkpoints/
+/outputs/**
+outputs/**
 
 __pycache__
+__pycache__/**
+**/__pycache__
 
-src/anomaly_detection_trust_case_study.egg-info
-src/anomaly_detection_trust_case_study.egg-info/**
+tests/__pycache__
+tests/__pycache__/**
 
-.ipynb_checkpoints/**
-
+results
