@@ -1,0 +1,6 @@
+# Documentation build only (Read the Docs). The demo's data is prebuilt in
+# docs/demos/trust/app/assets/data.js, so TensorFlow is not needed here.
+sphinx>=7.2,<9
+furo>=2024.8.6
+myst-parser>=3.0
+sphinx-copybutton>=0.5.2
