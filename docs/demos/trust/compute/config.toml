@@ -1,0 +1,68 @@
+# Samples replayed by the demo page.
+# `source = "mvtec"` reads the original MVTec AD files (exact replay of the paper);
+# `source = "archive"` recovers inputs from the SVG figures archived on the
+# xai-2024-paper branch (preview build, when the dataset is not at hand).
+
+source = "mvtec"
+mvtec_root = "/Users/rashid/data/DS/AD/MVtec"   # folder containing hazelnut/ and screw/
+repo_root = "../../../.."                       # repository root (models/ and, for archive mode, git history)
+
+[budget]
+lime_samples = 5000          # n, as in the paper
+shap_evals = 5000            # max_evals of the SHAP partition explainer
+target_segments = 100        # k, Quickshift superpixels
+replay_rows = 400            # LIME perturbations stored for the step-by-step replay
+checkpoints = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
+
+[threshold]                  # optimal tau* reported in the paper (Fig. 2)
+hazelnut = 0.367
+screw = 0.3169
+
+# The samples discussed in the paper (Fig. 3 and Fig. 4).
+[[sample]]
+dataset = "hazelnut"
+type = "crack"
+index = 4
+note = "Small surface crack, detected and localised correctly by both methods."
+
+[[sample]]
+dataset = "hazelnut"
+type = "crack"
+index = 14
+note = "Missed: the score falls just below the threshold, yet the explanations still find the crack."
+
+[[sample]]
+dataset = "hazelnut"
+type = "hole"
+index = 7
+note = "LIME is misled by the S1 superpixels and points at the border; in the paper, S2 superpixels that enclose the hole lift its best overlap from 0.01 to 0.69."
+
+[[sample]]
+dataset = "hazelnut"
+type = "cut"
+index = 14
+note = "Wrong reason: both methods point at a badly reconstructed area at the top, not the cut."
+
+[[sample]]
+dataset = "screw"
+type = "manipulated_front"
+index = 12
+note = "Flagged as anomalous, but the attribution mass lies away from the defect."
+
+[[sample]]
+dataset = "screw"
+type = "scratch_head"
+index = 5
+note = "Small scratch on the head; most attribution lands on the thread."
+
+[[sample]]
+dataset = "screw"
+type = "thread_side"
+index = 0
+note = "Critical case: both LIME and SHAP give low scores to the defective thread side."
+
+[[sample]]
+dataset = "screw"
+type = "thread_top"
+index = 3
+note = "Partly right: the strongest region touches the defect, with false positives along the thread."
