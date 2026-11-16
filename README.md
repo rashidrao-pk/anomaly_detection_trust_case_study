@@ -133,27 +133,43 @@ Experiments were conducted on the [MVTec Anomaly Detection Dataset](https://www.
 - 🔩 Screw
 - 🌰 Hazelnut
 
-### Generated Results
+### Published results (archived notebook branch)
+
 
 | Dataset  | PDF Results                                                                                                                 | HTML Results                                                                                                                                                 |
 | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Screw    | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.pdf)       | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/screw/imgs_screw_full.html)       |
 | Hazelnut | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/main/results/hazelnut/imgs_hazelnut_full.html) |
+=======
+| Dataset | PDF Results | HTML Results |
+|---|---|---|
+| Screw | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/screw/imgs_screw_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/screw/imgs_screw_full.html) |
+| Hazelnut | [PDF](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/hazelnut/imgs_hazelnut_full.pdf) | [HTML](https://htmlpreview.github.io/?https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/blob/xai-2024-paper/results/hazelnut/imgs_hazelnut_full.html) |
 
 ---
 
 # 📁 Repository Structure
 
 ```text
-├── models/                         # Pre-trained VAE-GAN models
-├── results/                        # Generated experimental results
-├── imgs/                           # Figures and repository assets
-├── utils.py                        # Utility functions
-├── models.py                       # VAE-GAN architecture
-├── AD_VAE_GAN_SCREW.ipynb          # Screw dataset experiments
-├── AD_VAE_GAN_HAZELNUT.ipynb       # Hazelnut dataset experiments
+├── configs/                      # Local/Epito YAML paths and settings
+├── scripts/                      # TensorFlow training, evaluation, XAI and figures
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── explain.py
+│   ├── check_inputs.py
+│   ├── plot_samples.py
+│   ├── plot_jaccard_vs_score.py
+│   └── plot_training_curves.py
+├── tf_scripts/                   # Shared model, XAI and plotting utilities
+├── models/                       # Archived TensorFlow model checkpoints
+├── docs/                         # TensorFlow and paper figure guides
+├── notebooks/                    # Copies of notebooks; paper archive linked above
+├── models.py                     # VAE-GAN architecture
+├── utils.py                      # Historical TensorFlow utilities
 └── requirements.txt
 ```
+
+Original published notebook code and historical outputs: [`xai-2024-paper`](https://github.com/rashidrao-pk/anomaly_detection_trust_case_study/tree/xai-2024-paper).
 
 ---
 

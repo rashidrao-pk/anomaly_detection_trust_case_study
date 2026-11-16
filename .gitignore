@@ -7,6 +7,7 @@ models/**
 !models/hazelnut_VAE_GAN_30000/.gitkeep
 !models/screw_VAE_GAN_30000/
 !models/screw_VAE_GAN_30000/.gitkeep
+# models/**
 
 .DS_Store/
 .DS_Store
