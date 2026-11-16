@@ -124,6 +124,9 @@ Run the CPU-only unit tests with:
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
+For a small end-to-end example using one MVTec image, see the
+[lightweight reproducibility tutorial](docs/QUICKSTART.md).
+
 ---
 
 # 📊 Supplementary Material

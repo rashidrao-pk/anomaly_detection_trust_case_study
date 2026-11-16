@@ -36,6 +36,7 @@ discussed in the paper.
    :maxdepth: 1
 
    TENSORFLOW
+   QUICKSTART
    PAPER_FIGURES
 
 Install
