@@ -60,4 +60,16 @@ def reconstruct(model, images, deterministic=True):
 
 
 def residual_map(images, reconstruction):
-    return np.abs(np.asarray(images) - np.asarray(reconstruction)).mean(axis=-1)
+    images = np.asarray(images)
+    reconstruction = np.asarray(reconstruction)
+    if images.shape != reconstruction.shape:
+        raise ValueError(
+            "Images and reconstruction must have identical shapes; "
+            f"got {images.shape} and {reconstruction.shape}"
+        )
+    if images.ndim < 3:
+        raise ValueError(
+            "Images and reconstruction must include height, width, and "
+            f"channel dimensions; got {images.shape}"
+        )
+    return np.abs(images - reconstruction).mean(axis=-1)

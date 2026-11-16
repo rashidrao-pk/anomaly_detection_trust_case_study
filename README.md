@@ -156,6 +156,12 @@ cd anomaly_detection_trust_case_study
 pip install -r requirements.txt
 ```
 
+Run the CPU-only unit tests with:
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
 ---
 
 # 📊 Supplementary Material
