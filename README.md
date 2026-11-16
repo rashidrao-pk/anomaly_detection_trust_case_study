@@ -118,6 +118,12 @@ cd anomaly_detection_trust_case_study
 pip install -r requirements.txt
 ```
 
+### Pretrained checkpoints
+
+Checkpoint files are intentionally not committed to Git. Download them from
+[Hugging Face](docs/MODELS.md) into the existing `models/` directory before
+running the TensorFlow evaluation or explanation commands.
+
 ---
 
 # 📊 Supplementary Material

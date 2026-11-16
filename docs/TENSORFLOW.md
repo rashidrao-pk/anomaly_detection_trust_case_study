@@ -14,6 +14,11 @@ environment before asserting numerical reproduction.
 Use Python 3.10, TensorFlow 2.15 and the pinned `requirements.txt`.
 Do not use the PyTorch-only Python 3.12 environment for this branch.
 
+Before evaluating or explaining the pretrained models, download the checkpoint
+files from Hugging Face as described in [docs/MODELS.md](MODELS.md). The
+downloaded files must be under `models/hazelnut_VAE_GAN_30000/` and
+`models/screw_VAE_GAN_30000/`.
+
 ## Train
 
 ```bash

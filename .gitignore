@@ -1,6 +1,12 @@
 #  Precomputed results
 results/**
-# models/**
+# Model checkpoints are downloaded locally from Hugging Face. Keep only the
+# directory placeholders in Git so the expected repository layout is visible.
+models/**
+!models/hazelnut_VAE_GAN_30000/
+!models/hazelnut_VAE_GAN_30000/.gitkeep
+!models/screw_VAE_GAN_30000/
+!models/screw_VAE_GAN_30000/.gitkeep
 
 .DS_Store/
 .DS_Store
